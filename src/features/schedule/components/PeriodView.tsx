@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Box, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import type { SelectChangeEvent } from '@mui/material';
-import { useMemberSchedule, useAllSkills } from '../hooks';
+import { usePeriodView } from '../hooks';
 import { useDebounce } from '@/shared/hooks/useDebounce';
 import LoadingOverlay from '@/shared/ui/LoadingOverlay';
 import ScheduleFilter from './ScheduleFilter';
@@ -43,8 +43,9 @@ export default function PeriodView() {
   const startMonth = months[0];
   const endMonth = months[months.length - 1];
 
-  const { data: rows, isLoading } = useMemberSchedule(startMonth, endMonth);
-  const { data: skills = [] } = useAllSkills();
+  const { data, isLoading } = usePeriodView(startMonth, endMonth);
+  const rows = data?.rows;
+  const skills = data?.skills ?? [];
 
   const filteredRows = useMemo(() => {
     if (!rows) return [];
@@ -83,7 +84,7 @@ export default function PeriodView() {
         onSkillsChange={setSelectedSkills}
         searchText={searchText}
         onSearchTextChange={setSearchText}
-        skills={skills}
+        skills={skills.map((name) => ({ id: name, name }))}
       />
 
       <ScheduleTable rows={filteredRows} months={months} />

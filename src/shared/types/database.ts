@@ -159,6 +159,23 @@ export interface Database {
     };
     Views: Record<string, never>;
     Functions: {
+      get_period_view: {
+        Args: { p_start: string; p_end: string };
+        Returns: {
+          members: Array<{
+            id: string;
+            name: string;
+            category: string;
+            skills: string[];
+          }>;
+          cells: Array<{
+            member_id: string;
+            month: string;
+            total: number;
+          }>;
+          skills: string[];
+        };
+      };
       get_members_with_skills: {
         Args: Record<string, never>;
         Returns: Array<{
@@ -166,16 +183,6 @@ export interface Database {
           name: string;
           category: string;
           skills: Array<{ skill_id: string; name: string }>;
-        }>;
-      };
-      get_assignments_in_range: {
-        Args: { p_start: string; p_end: string };
-        Returns: Array<{
-          member_id: string;
-          project_id: string;
-          month: string;
-          percentage: number | null;
-          project_name: string;
         }>;
       };
       get_assignments_in_month: {

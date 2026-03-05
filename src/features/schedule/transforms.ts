@@ -1,48 +1,5 @@
-import type { ScheduleRow, ScheduleCell, MonthlyViewRow, MonthlyViewProject } from './types';
-import type { MemberWithSkills, AssignmentWithProject, MonthlyAssignmentWithProject } from './api';
-
-export function transformToScheduleRows(
-  members: MemberWithSkills[],
-  assignments: AssignmentWithProject[],
-): ScheduleRow[] {
-  const assignmentsByMember = new Map<string, AssignmentWithProject[]>();
-  for (const a of assignments) {
-    const list = assignmentsByMember.get(a.member_id);
-    if (list) {
-      list.push(a);
-    } else {
-      assignmentsByMember.set(a.member_id, [a]);
-    }
-  }
-
-  return members.map((member) => {
-    const memberAssignments = assignmentsByMember.get(member.id) ?? [];
-
-    const months: Record<string, ScheduleCell> = {};
-
-    for (const assignment of memberAssignments) {
-      const month = assignment.month;
-      if (!months[month]) {
-        months[month] = { totalPercentage: 0, assignments: [] };
-      }
-      const pct = assignment.percentage ?? 0;
-      months[month].totalPercentage += pct;
-      months[month].assignments.push({
-        projectId: assignment.project_id,
-        projectName: assignment.project_name ?? '',
-        percentage: pct,
-      });
-    }
-
-    return {
-      memberId: member.id,
-      memberName: member.name,
-      category: member.category,
-      skills: member.skills.map((s) => s.name).filter(Boolean),
-      months,
-    };
-  });
-}
+import type { MonthlyViewRow, MonthlyViewProject } from './types';
+import type { MemberWithSkills, MonthlyAssignmentWithProject } from './api';
 
 export function transformToMonthlyView(
   members: MemberWithSkills[],
