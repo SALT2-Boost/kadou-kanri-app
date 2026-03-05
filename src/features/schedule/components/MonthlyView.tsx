@@ -7,13 +7,13 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  TextField,
   Typography,
   Stack,
 } from '@mui/material';
 import { useMonthlyView, useAllSkills } from '../hooks';
 import { useDebounce } from '@/shared/hooks/useDebounce';
 import LoadingOverlay from '@/shared/ui/LoadingOverlay';
+import MonthPicker from '@/shared/ui/MonthPicker';
 import SkillChip from '@/shared/ui/SkillChip';
 import ScheduleFilter from './ScheduleFilter';
 import type { MonthlyViewRow } from '../types';
@@ -69,14 +69,10 @@ export default function MonthlyView() {
   return (
     <Box>
       <Box sx={{ mb: 2 }}>
-        <TextField
-          type="month"
-          size="small"
+        <MonthPicker
           label="対象月"
           value={selectedMonth}
-          onChange={(e) => setSelectedMonth(e.target.value)}
-          slotProps={{ inputLabel: { shrink: true } }}
-          sx={{ minWidth: 180 }}
+          onChange={setSelectedMonth}
         />
       </Box>
 

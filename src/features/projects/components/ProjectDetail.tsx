@@ -19,6 +19,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SaveIcon from '@mui/icons-material/Save';
 import LoadingOverlay from '@/shared/ui/LoadingOverlay';
+import MonthPicker from '@/shared/ui/MonthPicker';
 import { AssignmentTable } from '@/features/assignments';
 import { useProject, useUpdateProject, useDeleteProject } from '../hooks';
 
@@ -182,22 +183,18 @@ export default function ProjectDetail() {
               fullWidth
             />
             <Stack direction="row" spacing={2}>
-              <TextField
+              <MonthPicker
                 label="開始月"
-                type="month"
                 value={startMonth}
-                onChange={(e) => setStartMonth(e.target.value)}
+                onChange={setStartMonth}
                 required
                 fullWidth
-                slotProps={{ inputLabel: { shrink: true } }}
               />
-              <TextField
+              <MonthPicker
                 label="終了月"
-                type="month"
                 value={endMonth}
-                onChange={(e) => setEndMonth(e.target.value)}
+                onChange={setEndMonth}
                 fullWidth
-                slotProps={{ inputLabel: { shrink: true } }}
               />
             </Stack>
             <TextField

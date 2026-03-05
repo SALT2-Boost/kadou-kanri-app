@@ -9,6 +9,7 @@ import {
   MenuItem,
   Stack,
 } from '@mui/material';
+import MonthPicker from '@/shared/ui/MonthPicker';
 import { useCreateProject, useUpdateProject } from '../hooks';
 import type { Project } from '../types';
 
@@ -103,22 +104,18 @@ export default function ProjectForm({
             onChange={(e) => setMonthlyRevenue(e.target.value)}
             fullWidth
           />
-          <TextField
+          <MonthPicker
             label="開始月"
-            type="month"
             value={startMonth}
-            onChange={(e) => setStartMonth(e.target.value)}
+            onChange={setStartMonth}
             required
             fullWidth
-            slotProps={{ inputLabel: { shrink: true } }}
           />
-          <TextField
+          <MonthPicker
             label="終了月"
-            type="month"
             value={endMonth}
-            onChange={(e) => setEndMonth(e.target.value)}
+            onChange={setEndMonth}
             fullWidth
-            slotProps={{ inputLabel: { shrink: true } }}
           />
           <TextField
             label="ステータス"
