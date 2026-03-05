@@ -22,38 +22,38 @@ export interface MonthlyAssignmentWithProject {
   project_name: string;
 }
 
-// 期間ビュー用: メンバー × 月の稼働集計（RPC で 2 往復に削減）
+// 期間ビュー用: RPC 2本を並列実行（各RPC内でJOIN済みなのでPostgRESTのネストJOINを回避）
 export async function fetchMemberSchedule(startMonth: string, endMonth: string) {
   const [membersResult, assignmentsResult] = await Promise.all([
     supabase.rpc('get_members_with_skills'),
-    supabase.rpc('get_assignments_for_period', {
-      start_month: startMonth,
-      end_month: endMonth,
+    supabase.rpc('get_assignments_in_range', {
+      p_start: startMonth,
+      p_end: endMonth,
     }),
   ]);
   if (membersResult.error) throw membersResult.error;
   if (assignmentsResult.error) throw assignmentsResult.error;
 
   return {
-    members: membersResult.data as MemberWithSkills[],
-    assignments: assignmentsResult.data as AssignmentWithProject[],
+    members: membersResult.data as unknown as MemberWithSkills[],
+    assignments: assignmentsResult.data as unknown as AssignmentWithProject[],
   };
 }
 
-// 月別ビュー用: 特定月のメンバー × 案件（RPC で 2 往復に削減）
+// 月別ビュー用: RPC 2本を並列実行
 export async function fetchMonthlyView(month: string) {
   const [membersResult, assignmentsResult] = await Promise.all([
     supabase.rpc('get_members_with_skills'),
-    supabase.rpc('get_assignments_for_month', {
-      target_month: month,
+    supabase.rpc('get_assignments_in_month', {
+      p_month: month,
     }),
   ]);
   if (membersResult.error) throw membersResult.error;
   if (assignmentsResult.error) throw assignmentsResult.error;
 
   return {
-    members: membersResult.data as MemberWithSkills[],
-    assignments: assignmentsResult.data as MonthlyAssignmentWithProject[],
+    members: membersResult.data as unknown as MemberWithSkills[],
+    assignments: assignmentsResult.data as unknown as MonthlyAssignmentWithProject[],
   };
 }
 

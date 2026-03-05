@@ -158,7 +158,36 @@ export interface Database {
       };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      get_members_with_skills: {
+        Args: Record<string, never>;
+        Returns: Array<{
+          id: string;
+          name: string;
+          category: string;
+          skills: Array<{ skill_id: string; name: string }>;
+        }>;
+      };
+      get_assignments_in_range: {
+        Args: { p_start: string; p_end: string };
+        Returns: Array<{
+          member_id: string;
+          project_id: string;
+          month: string;
+          percentage: number | null;
+          project_name: string;
+        }>;
+      };
+      get_assignments_in_month: {
+        Args: { p_month: string };
+        Returns: Array<{
+          member_id: string;
+          project_id: string;
+          percentage: number | null;
+          project_name: string;
+        }>;
+      };
+    };
     Enums: Record<string, never>;
   };
 }

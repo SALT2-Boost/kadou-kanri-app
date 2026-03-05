@@ -1,9 +1,13 @@
 -- ========================================
--- スケジュール画面用 RPC 関数
--- DB側でJOIN・集約し、フロントへの往復を最小化
+-- 旧RPC関数を削除し、1往復で済む新RPC関数に置き換え
 -- ========================================
 
--- 期間ビュー用: メンバー+スキル+アサインを1クエリで返す
+-- 旧関数を削除
+DROP FUNCTION IF EXISTS get_members_with_skills();
+DROP FUNCTION IF EXISTS get_assignments_for_period(date, date);
+DROP FUNCTION IF EXISTS get_assignments_for_month(date);
+
+-- 期間ビュー用: メンバー+スキル+アサインを1回のRPCで返す
 CREATE OR REPLACE FUNCTION get_schedule_for_period(start_month date, end_month date)
 RETURNS jsonb LANGUAGE sql STABLE AS $$
   SELECT jsonb_build_object(
@@ -41,7 +45,7 @@ RETURNS jsonb LANGUAGE sql STABLE AS $$
   );
 $$;
 
--- 月別ビュー用: メンバー+スキル+アサインを1クエリで返す
+-- 月別ビュー用: メンバー+スキル+アサインを1回のRPCで返す
 CREATE OR REPLACE FUNCTION get_schedule_for_month(target_month date)
 RETURNS jsonb LANGUAGE sql STABLE AS $$
   SELECT jsonb_build_object(
