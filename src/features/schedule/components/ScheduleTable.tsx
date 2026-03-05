@@ -12,14 +12,13 @@ import {
 import SkillChip from '@/shared/ui/SkillChip';
 import ScheduleCellComponent from './ScheduleCell';
 import AssignmentPopover from './AssignmentPopover';
+import { MEMBER_CATEGORIES } from '@/shared/constants/categories';
 import type { ScheduleRow, ScheduleCell } from '../types';
 
 interface ScheduleTableProps {
   rows: ScheduleRow[];
   months: string[];
 }
-
-const CATEGORY_ORDER: Array<'社員' | '入社予定' | 'インターン'> = ['社員', '入社予定', 'インターン'];
 
 function formatMonth(month: string): string {
   return month.slice(0, 7).replace('-', '/');
@@ -40,7 +39,7 @@ export default function ScheduleTable({ rows, months }: ScheduleTableProps) {
   }, []);
 
   // 区分でグルーピング
-  const grouped = CATEGORY_ORDER.map((category) => ({
+  const grouped = MEMBER_CATEGORIES.map((category) => ({
     category,
     members: rows.filter((r) => r.category === category),
   })).filter((g) => g.members.length > 0);
@@ -121,6 +120,7 @@ interface MemberRowProps {
 }
 
 const MemberRow = memo(function MemberRow({ row, months, onCellClick }: MemberRowProps) {
+  const isPlaceholder = row.category === '未定枠';
   const handleCellClick = useCallback(
     (month: string) => (e: React.MouseEvent<HTMLTableCellElement>) => {
       const cell = row.months[month];
@@ -130,14 +130,23 @@ const MemberRow = memo(function MemberRow({ row, months, onCellClick }: MemberRo
   );
 
   return (
-    <TableRow hover>
+    <TableRow
+      hover
+      sx={isPlaceholder ? {
+        borderLeft: '3px dashed',
+        borderLeftColor: 'warning.main',
+        bgcolor: 'rgba(255, 152, 0, 0.04)',
+      } : undefined}
+    >
       <TableCell
         sx={{
           position: 'sticky',
           left: 0,
-          bgcolor: 'background.paper',
+          bgcolor: isPlaceholder ? 'rgba(255, 152, 0, 0.06)' : 'background.paper',
           zIndex: 1,
           whiteSpace: 'nowrap',
+          fontStyle: isPlaceholder ? 'italic' : 'normal',
+          color: isPlaceholder ? 'text.secondary' : 'text.primary',
         }}
       >
         {row.memberName}

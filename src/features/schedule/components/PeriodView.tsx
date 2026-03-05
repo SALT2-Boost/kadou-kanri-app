@@ -5,6 +5,7 @@ import { useMemberSchedule, useAllSkills } from '../hooks';
 import { useDebounce } from '@/shared/hooks/useDebounce';
 import LoadingOverlay from '@/shared/ui/LoadingOverlay';
 import ScheduleFilter from './ScheduleFilter';
+import { MEMBER_CATEGORIES } from '@/shared/constants/categories';
 import ScheduleTable from './ScheduleTable';
 
 function getCurrentMonth(): string {
@@ -27,7 +28,7 @@ function generateMonthRange(startMonth: string, count: number): string[] {
 
 export default function PeriodView() {
   const [rangeType, setRangeType] = useState<'6' | '12'>('6');
-  const [categories, setCategories] = useState<string[]>(['社員', '入社予定', 'インターン']);
+  const [categories, setCategories] = useState<string[]>([...MEMBER_CATEGORIES]);
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [searchText, setSearchText] = useState('');
   const debouncedSearch = useDebounce(searchText, 300);

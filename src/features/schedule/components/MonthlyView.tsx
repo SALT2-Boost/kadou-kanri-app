@@ -15,6 +15,7 @@ import { useDebounce } from '@/shared/hooks/useDebounce';
 import LoadingOverlay from '@/shared/ui/LoadingOverlay';
 import MonthPicker from '@/shared/ui/MonthPicker';
 import SkillChip from '@/shared/ui/SkillChip';
+import { MEMBER_CATEGORIES } from '@/shared/constants/categories';
 import ScheduleFilter from './ScheduleFilter';
 import type { MonthlyViewRow } from '../types';
 
@@ -23,11 +24,9 @@ function getCurrentMonthValue(): string {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 }
 
-const CATEGORY_ORDER: Array<'社員' | '入社予定' | 'インターン'> = ['社員', '入社予定', 'インターン'];
-
 export default function MonthlyView() {
   const [selectedMonth, setSelectedMonth] = useState(getCurrentMonthValue);
-  const [categories, setCategories] = useState<string[]>(['社員', '入社予定', 'インターン']);
+  const [categories, setCategories] = useState<string[]>([...MEMBER_CATEGORIES]);
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [searchText, setSearchText] = useState('');
   const debouncedSearch = useDebounce(searchText, 300);
@@ -57,7 +56,7 @@ export default function MonthlyView() {
   // 区分でグルーピング
   const grouped = useMemo(
     () =>
-      CATEGORY_ORDER.map((category) => ({
+      MEMBER_CATEGORIES.map((category) => ({
         category,
         members: filteredRows.filter((r) => r.category === category),
       })).filter((g) => g.members.length > 0),

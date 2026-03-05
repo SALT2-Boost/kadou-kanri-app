@@ -15,6 +15,8 @@ import {
   Chip,
 } from '@mui/material';
 import { useSkills, useCreateMember, useUpdateMember, useUpdateMemberSkills } from '../hooks';
+import { MEMBER_CATEGORIES } from '@/shared/constants/categories';
+import type { MemberCategory } from '@/shared/constants/categories';
 import type { MemberWithSkills, Skill } from '../types';
 
 interface MemberFormProps {
@@ -23,8 +25,6 @@ interface MemberFormProps {
   member?: MemberWithSkills;
 }
 
-const CATEGORIES = ['社員', '入社予定', 'インターン'] as const;
-
 export default function MemberForm({ open, onClose, member }: MemberFormProps) {
   const { data: skills = [] } = useSkills();
   const createMember = useCreateMember();
@@ -32,7 +32,7 @@ export default function MemberForm({ open, onClose, member }: MemberFormProps) {
   const updateMemberSkills = useUpdateMemberSkills();
 
   const [name, setName] = useState('');
-  const [category, setCategory] = useState<(typeof CATEGORIES)[number]>('社員');
+  const [category, setCategory] = useState<MemberCategory>('社員');
   const [selectedSkills, setSelectedSkills] = useState<Skill[]>([]);
   const [note, setNote] = useState('');
   const [nameError, setNameError] = useState(false);
@@ -114,9 +114,9 @@ export default function MemberForm({ open, onClose, member }: MemberFormProps) {
             <Select
               value={category}
               label="区分"
-              onChange={(e) => setCategory(e.target.value as (typeof CATEGORIES)[number])}
+              onChange={(e) => setCategory(e.target.value as MemberCategory)}
             >
-              {CATEGORIES.map((cat) => (
+              {MEMBER_CATEGORIES.map((cat) => (
                 <MenuItem key={cat} value={cat}>
                   {cat}
                 </MenuItem>

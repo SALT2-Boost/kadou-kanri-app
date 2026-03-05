@@ -10,6 +10,7 @@ import {
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import SkillChip from '@/shared/ui/SkillChip';
+import { MEMBER_CATEGORIES } from '@/shared/constants/categories';
 
 interface ScheduleFilterProps {
   categories: string[];
@@ -20,8 +21,6 @@ interface ScheduleFilterProps {
   onSearchTextChange: (text: string) => void;
   skills: Array<{ id: string; name: string }>;
 }
-
-const ALL_CATEGORIES = ['社員', '入社予定', 'インターン'] as const;
 
 export default function ScheduleFilter({
   categories,
@@ -55,7 +54,7 @@ export default function ScheduleFilter({
           区分
         </Typography>
         <FormGroup row>
-          {ALL_CATEGORIES.map((cat) => (
+          {MEMBER_CATEGORIES.map((cat) => (
             <FormControlLabel
               key={cat}
               control={

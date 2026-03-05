@@ -3,7 +3,7 @@ import type { ScheduleRow, ScheduleCell, MonthlyViewRow, MonthlyViewProject } fr
 interface MemberData {
   id: string;
   name: string;
-  category: '社員' | '入社予定' | 'インターン';
+  category: '社員' | '入社予定' | 'インターン' | '未定枠';
   member_skills: Array<{ skill_id: string; skills: { name: string } }>;
 }
 

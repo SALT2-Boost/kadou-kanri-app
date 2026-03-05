@@ -23,9 +23,8 @@ import SkillChip from '@/shared/ui/SkillChip';
 import { useDebounce } from '@/shared/hooks/useDebounce';
 import { useMembers, useSkills } from '../hooks';
 import type { MemberWithSkills } from '../types';
+import { MEMBER_CATEGORIES } from '@/shared/constants/categories';
 import MemberForm from './MemberForm';
-
-const CATEGORIES = ['社員', '入社予定', 'インターン'] as const;
 
 export default function MemberList() {
   const navigate = useNavigate();
@@ -36,7 +35,7 @@ export default function MemberList() {
   const [searchText, setSearchText] = useState('');
   const debouncedSearch = useDebounce(searchText, 300);
   const [selectedCategories, setSelectedCategories] = useState<Set<string>>(
-    new Set(CATEGORIES)
+    new Set(MEMBER_CATEGORIES)
   );
   const [selectedSkillIds, setSelectedSkillIds] = useState<Set<string>>(new Set());
 
@@ -106,7 +105,7 @@ export default function MemberList() {
             <Typography variant="body2" color="text.secondary" sx={{ minWidth: 40 }}>
               区分
             </Typography>
-            {CATEGORIES.map((cat) => (
+            {MEMBER_CATEGORIES.map((cat) => (
               <FormControlLabel
                 key={cat}
                 control={

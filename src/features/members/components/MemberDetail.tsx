@@ -31,9 +31,9 @@ import {
   useUpdateMemberSkills,
   useDeleteMember,
 } from '../hooks';
+import { MEMBER_CATEGORIES } from '@/shared/constants/categories';
+import type { MemberCategory } from '@/shared/constants/categories';
 import type { Skill } from '../types';
-
-const CATEGORIES = ['社員', '入社予定', 'インターン'] as const;
 
 export default function MemberDetail() {
   const { id } = useParams<{ id: string }>();
@@ -45,7 +45,7 @@ export default function MemberDetail() {
   const deleteMemberMutation = useDeleteMember();
 
   const [name, setName] = useState('');
-  const [category, setCategory] = useState<(typeof CATEGORIES)[number]>('社員');
+  const [category, setCategory] = useState<MemberCategory>('社員');
   const [selectedSkills, setSelectedSkills] = useState<Skill[]>([]);
   const [note, setNote] = useState('');
   const [initialized, setInitialized] = useState(false);
@@ -142,9 +142,9 @@ export default function MemberDetail() {
             <Select
               value={category}
               label="区分"
-              onChange={(e) => setCategory(e.target.value as (typeof CATEGORIES)[number])}
+              onChange={(e) => setCategory(e.target.value as MemberCategory)}
             >
-              {CATEGORIES.map((cat) => (
+              {MEMBER_CATEGORIES.map((cat) => (
                 <MenuItem key={cat} value={cat}>
                   {cat}
                 </MenuItem>

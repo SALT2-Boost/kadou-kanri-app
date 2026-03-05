@@ -1,7 +1,7 @@
 export interface ScheduleRow {
   memberId: string;
   memberName: string;
-  category: '社員' | '入社予定' | 'インターン';
+  category: '社員' | '入社予定' | 'インターン' | '未定枠';
   skills: string[];
   months: Record<string, ScheduleCell>; // key: '2026-03-01'
 }
@@ -18,7 +18,7 @@ export interface ScheduleCell {
 export interface MonthlyViewRow {
   memberId: string;
   memberName: string;
-  category: '社員' | '入社予定' | 'インターン';
+  category: '社員' | '入社予定' | 'インターン' | '未定枠';
   skills: string[];
   projects: Record<string, number>; // key: projectId, value: percentage
   totalPercentage: number;

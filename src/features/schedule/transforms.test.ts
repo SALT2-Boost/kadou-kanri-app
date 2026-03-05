@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { transformToScheduleRows, transformToMonthlyView } from './transforms';
 
-const makeMember = (id: string, name: string, category: '社員' | '入社予定' | 'インターン' = '社員', skills: string[] = []) => ({
+const makeMember = (id: string, name: string, category: '社員' | '入社予定' | 'インターン' | '未定枠' = '社員', skills: string[] = []) => ({
   id,
   name,
   category,

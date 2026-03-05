@@ -20,7 +20,7 @@ export interface Database {
         Row: {
           id: string;
           name: string;
-          category: '社員' | '入社予定' | 'インターン';
+          category: '社員' | '入社予定' | 'インターン' | '未定枠';
           note: string | null;
           is_active: boolean;
           created_at: string;
@@ -29,7 +29,7 @@ export interface Database {
         Insert: {
           id?: string;
           name: string;
-          category: '社員' | '入社予定' | 'インターン';
+          category: '社員' | '入社予定' | 'インターン' | '未定枠';
           note?: string | null;
           is_active?: boolean;
           created_at?: string;
@@ -38,7 +38,7 @@ export interface Database {
         Update: {
           id?: string;
           name?: string;
-          category?: '社員' | '入社予定' | 'インターン';
+          category?: '社員' | '入社予定' | 'インターン' | '未定枠';
           note?: string | null;
           is_active?: boolean;
         };
