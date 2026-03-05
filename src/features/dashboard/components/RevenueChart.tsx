@@ -22,9 +22,9 @@ export default function RevenueChart() {
 
   const chartData = (data ?? []).map((row) => ({
     month: formatMonth(row.month),
-    確定: Math.round(row.confirmed / 10000),
-    提案済: Math.round(row.proposed / 10000),
-    提案: Math.round(row.draft / 10000),
+    確定: row.confirmed,
+    提案済: row.proposed,
+    提案: row.draft,
   }));
 
   return (

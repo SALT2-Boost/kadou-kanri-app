@@ -26,10 +26,19 @@ export function transformToScheduleRows(
   members: MemberData[],
   assignments: AssignmentData[],
 ): ScheduleRow[] {
+  // Map でグループ化: O(n) で member_id → assignments を引けるようにする
+  const assignmentsByMember = new Map<string, AssignmentData[]>();
+  for (const a of assignments) {
+    const list = assignmentsByMember.get(a.member_id);
+    if (list) {
+      list.push(a);
+    } else {
+      assignmentsByMember.set(a.member_id, [a]);
+    }
+  }
+
   return members.map((member) => {
-    const memberAssignments = assignments.filter(
-      (a) => a.member_id === member.id,
-    );
+    const memberAssignments = assignmentsByMember.get(member.id) ?? [];
 
     const months: Record<string, ScheduleCell> = {};
 
@@ -69,10 +78,18 @@ export function transformToMonthlyView(
   }
   const projects = Array.from(projectMap.values());
 
+  const assignmentsByMember = new Map<string, MonthlyAssignmentData[]>();
+  for (const a of assignments) {
+    const list = assignmentsByMember.get(a.member_id);
+    if (list) {
+      list.push(a);
+    } else {
+      assignmentsByMember.set(a.member_id, [a]);
+    }
+  }
+
   const rows: MonthlyViewRow[] = members.map((member) => {
-    const memberAssignments = assignments.filter(
-      (a) => a.member_id === member.id,
-    );
+    const memberAssignments = assignmentsByMember.get(member.id) ?? [];
     const projectPercentages: Record<string, number> = {};
     let totalPercentage = 0;
 

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback, memo } from 'react';
 import {
   Box,
   Table,
@@ -29,15 +29,15 @@ export default function ScheduleTable({ rows, months }: ScheduleTableProps) {
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [selectedCell, setSelectedCell] = useState<ScheduleCell | null>(null);
 
-  const handleCellClick = (event: React.MouseEvent<HTMLTableCellElement>, cell: ScheduleCell) => {
+  const handleCellClick = useCallback((event: React.MouseEvent<HTMLTableCellElement>, cell: ScheduleCell) => {
     setAnchorEl(event.currentTarget);
     setSelectedCell(cell);
-  };
+  }, []);
 
-  const handlePopoverClose = () => {
+  const handlePopoverClose = useCallback(() => {
     setAnchorEl(null);
     setSelectedCell(null);
-  };
+  }, []);
 
   // 区分でグルーピング
   const grouped = CATEGORY_ORDER.map((category) => ({
@@ -94,7 +94,7 @@ interface GroupRowsProps {
   onCellClick: (event: React.MouseEvent<HTMLTableCellElement>, cell: ScheduleCell) => void;
 }
 
-function GroupRows({ category, members, months, onCellClick }: GroupRowsProps) {
+const GroupRows = memo(function GroupRows({ category, members, months, onCellClick }: GroupRowsProps) {
   const totalColumns = months.length + 2;
 
   return (
@@ -108,44 +108,61 @@ function GroupRows({ category, members, months, onCellClick }: GroupRowsProps) {
         </TableCell>
       </TableRow>
       {members.map((row) => (
-        <TableRow key={row.memberId} hover>
-          <TableCell
-            sx={{
-              position: 'sticky',
-              left: 0,
-              bgcolor: 'background.paper',
-              zIndex: 1,
-              whiteSpace: 'nowrap',
-            }}
-          >
-            {row.memberName}
-          </TableCell>
-          <TableCell
-            sx={{
-              position: 'sticky',
-              left: 120,
-              bgcolor: 'background.paper',
-              zIndex: 1,
-            }}
-          >
-            <Stack direction="row" flexWrap="wrap" gap={0.5}>
-              {row.skills.map((skill) => (
-                <SkillChip key={skill} name={skill} />
-              ))}
-            </Stack>
-          </TableCell>
-          {months.map((month) => (
-            <ScheduleCellComponent
-              key={month}
-              cell={row.months[month]}
-              onClick={(e) => {
-                const cell = row.months[month];
-                if (cell) onCellClick(e, cell);
-              }}
-            />
-          ))}
-        </TableRow>
+        <MemberRow key={row.memberId} row={row} months={months} onCellClick={onCellClick} />
       ))}
     </>
   );
+});
+
+interface MemberRowProps {
+  row: ScheduleRow;
+  months: string[];
+  onCellClick: (event: React.MouseEvent<HTMLTableCellElement>, cell: ScheduleCell) => void;
 }
+
+const MemberRow = memo(function MemberRow({ row, months, onCellClick }: MemberRowProps) {
+  const handleCellClick = useCallback(
+    (month: string) => (e: React.MouseEvent<HTMLTableCellElement>) => {
+      const cell = row.months[month];
+      if (cell) onCellClick(e, cell);
+    },
+    [row.months, onCellClick],
+  );
+
+  return (
+    <TableRow hover>
+      <TableCell
+        sx={{
+          position: 'sticky',
+          left: 0,
+          bgcolor: 'background.paper',
+          zIndex: 1,
+          whiteSpace: 'nowrap',
+        }}
+      >
+        {row.memberName}
+      </TableCell>
+      <TableCell
+        sx={{
+          position: 'sticky',
+          left: 120,
+          bgcolor: 'background.paper',
+          zIndex: 1,
+        }}
+      >
+        <Stack direction="row" flexWrap="wrap" gap={0.5}>
+          {row.skills.map((skill) => (
+            <SkillChip key={skill} name={skill} />
+          ))}
+        </Stack>
+      </TableCell>
+      {months.map((month) => (
+        <ScheduleCellComponent
+          key={month}
+          cell={row.months[month]}
+          onClick={handleCellClick(month)}
+        />
+      ))}
+    </TableRow>
+  );
+});

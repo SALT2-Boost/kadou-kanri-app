@@ -14,7 +14,7 @@ function getCurrentMonth(): string {
 
 function generateMonthRange(startMonth: string, count: number): string[] {
   const months: string[] = [];
-  const start = new Date(startMonth + '-01');
+  const start = new Date(startMonth);
   for (let i = 0; i < count; i++) {
     const d = new Date(start);
     d.setMonth(d.getMonth() + i);
@@ -47,15 +47,12 @@ export default function PeriodView() {
 
   const filteredRows = useMemo(() => {
     if (!rows) return [];
+    const categorySet = new Set(categories);
+    const skillSet = new Set(selectedSkills);
     return rows.filter((row) => {
-      if (!categories.includes(row.category)) return false;
+      if (!categorySet.has(row.category)) return false;
       if (debouncedSearch && !row.memberName.includes(debouncedSearch)) return false;
-      if (
-        selectedSkills.length > 0 &&
-        !selectedSkills.some((s) => row.skills.includes(s))
-      ) {
-        return false;
-      }
+      if (skillSet.size > 0 && !row.skills.some((s) => skillSet.has(s))) return false;
       return true;
     });
   }, [rows, categories, debouncedSearch, selectedSkills]);

@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { TableCell } from '@mui/material';
 import type { ScheduleCell as ScheduleCellType } from '../types';
 
@@ -19,7 +20,7 @@ function getCellStyles(totalPercentage: number | undefined) {
   return { bgcolor: 'grey.50' };
 }
 
-export default function ScheduleCellComponent({ cell, onClick }: ScheduleCellProps) {
+const ScheduleCellComponent = memo(function ScheduleCellComponent({ cell, onClick }: ScheduleCellProps) {
   const totalPercentage = cell?.totalPercentage;
   const styles = getCellStyles(totalPercentage);
 
@@ -39,4 +40,6 @@ export default function ScheduleCellComponent({ cell, onClick }: ScheduleCellPro
       {totalPercentage && totalPercentage > 0 ? `${totalPercentage}%` : ''}
     </TableCell>
   );
-}
+});
+
+export default ScheduleCellComponent;

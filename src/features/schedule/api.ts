@@ -27,46 +27,48 @@ interface MonthlyAssignmentWithProject {
 
 // 期間ビュー用: メンバー × 月の稼働集計
 export async function fetchMemberSchedule(startMonth: string, endMonth: string) {
-  const { data: members, error: memberError } = await supabase
-    .from('members')
-    .select('id, name, category, member_skills(skill_id, skills(name))')
-    .eq('is_active', true)
-    .order('category')
-    .order('name');
-  if (memberError) throw memberError;
-
-  const { data: assignments, error: assignError } = await supabase
-    .from('assignments')
-    .select('member_id, project_id, month, percentage, projects(id, name)')
-    .gte('month', startMonth)
-    .lte('month', endMonth);
-  if (assignError) throw assignError;
+  const [membersResult, assignmentsResult] = await Promise.all([
+    supabase
+      .from('members')
+      .select('id, name, category, member_skills(skill_id, skills(name))')
+      .eq('is_active', true)
+      .order('category')
+      .order('name'),
+    supabase
+      .from('assignments')
+      .select('member_id, project_id, month, percentage, projects(id, name)')
+      .gte('month', startMonth)
+      .lte('month', endMonth),
+  ]);
+  if (membersResult.error) throw membersResult.error;
+  if (assignmentsResult.error) throw assignmentsResult.error;
 
   return {
-    members: members as unknown as MemberWithSkills[],
-    assignments: assignments as unknown as AssignmentWithProject[],
+    members: membersResult.data as unknown as MemberWithSkills[],
+    assignments: assignmentsResult.data as unknown as AssignmentWithProject[],
   };
 }
 
 // 月別ビュー用: 特定月のメンバー × 案件
 export async function fetchMonthlyView(month: string) {
-  const { data: members, error: memberError } = await supabase
-    .from('members')
-    .select('id, name, category, member_skills(skill_id, skills(name))')
-    .eq('is_active', true)
-    .order('category')
-    .order('name');
-  if (memberError) throw memberError;
-
-  const { data: assignments, error: assignError } = await supabase
-    .from('assignments')
-    .select('member_id, project_id, percentage, projects(id, name)')
-    .eq('month', month);
-  if (assignError) throw assignError;
+  const [membersResult, assignmentsResult] = await Promise.all([
+    supabase
+      .from('members')
+      .select('id, name, category, member_skills(skill_id, skills(name))')
+      .eq('is_active', true)
+      .order('category')
+      .order('name'),
+    supabase
+      .from('assignments')
+      .select('member_id, project_id, percentage, projects(id, name)')
+      .eq('month', month),
+  ]);
+  if (membersResult.error) throw membersResult.error;
+  if (assignmentsResult.error) throw assignmentsResult.error;
 
   return {
-    members: members as unknown as MemberWithSkills[],
-    assignments: assignments as unknown as MonthlyAssignmentWithProject[],
+    members: membersResult.data as unknown as MemberWithSkills[],
+    assignments: assignmentsResult.data as unknown as MonthlyAssignmentWithProject[],
   };
 }
 
