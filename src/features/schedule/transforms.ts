@@ -1,33 +1,11 @@
 import type { ScheduleRow, ScheduleCell, MonthlyViewRow, MonthlyViewProject } from './types';
-
-interface MemberData {
-  id: string;
-  name: string;
-  category: '社員' | '入社予定' | 'インターン' | '未定枠';
-  member_skills: Array<{ skill_id: string; skills: { name: string } }>;
-}
-
-interface AssignmentData {
-  member_id: string;
-  project_id: string;
-  month: string;
-  percentage: number | null;
-  projects: { id: string; name: string };
-}
-
-interface MonthlyAssignmentData {
-  member_id: string;
-  project_id: string;
-  percentage: number | null;
-  projects: { id: string; name: string };
-}
+import type { MemberWithSkills, AssignmentWithProject, MonthlyAssignmentWithProject } from './api';
 
 export function transformToScheduleRows(
-  members: MemberData[],
-  assignments: AssignmentData[],
+  members: MemberWithSkills[],
+  assignments: AssignmentWithProject[],
 ): ScheduleRow[] {
-  // Map でグループ化: O(n) で member_id → assignments を引けるようにする
-  const assignmentsByMember = new Map<string, AssignmentData[]>();
+  const assignmentsByMember = new Map<string, AssignmentWithProject[]>();
   for (const a of assignments) {
     const list = assignmentsByMember.get(a.member_id);
     if (list) {
@@ -51,7 +29,7 @@ export function transformToScheduleRows(
       months[month].totalPercentage += pct;
       months[month].assignments.push({
         projectId: assignment.project_id,
-        projectName: assignment.projects?.name ?? '',
+        projectName: assignment.project_name ?? '',
         percentage: pct,
       });
     }
@@ -60,25 +38,25 @@ export function transformToScheduleRows(
       memberId: member.id,
       memberName: member.name,
       category: member.category,
-      skills: member.member_skills.map((ms) => ms.skills?.name ?? '').filter(Boolean),
+      skills: member.skills.map((s) => s.name).filter(Boolean),
       months,
     };
   });
 }
 
 export function transformToMonthlyView(
-  members: MemberData[],
-  assignments: MonthlyAssignmentData[],
+  members: MemberWithSkills[],
+  assignments: MonthlyAssignmentWithProject[],
 ): { rows: MonthlyViewRow[]; projects: MonthlyViewProject[] } {
   const projectMap = new Map<string, MonthlyViewProject>();
   for (const a of assignments) {
-    if (a.projects && !projectMap.has(a.project_id)) {
-      projectMap.set(a.project_id, { id: a.projects.id, name: a.projects.name });
+    if (!projectMap.has(a.project_id)) {
+      projectMap.set(a.project_id, { id: a.project_id, name: a.project_name });
     }
   }
   const projects = Array.from(projectMap.values());
 
-  const assignmentsByMember = new Map<string, MonthlyAssignmentData[]>();
+  const assignmentsByMember = new Map<string, MonthlyAssignmentWithProject[]>();
   for (const a of assignments) {
     const list = assignmentsByMember.get(a.member_id);
     if (list) {
@@ -103,7 +81,7 @@ export function transformToMonthlyView(
       memberId: member.id,
       memberName: member.name,
       category: member.category,
-      skills: member.member_skills.map((ms) => ms.skills?.name ?? '').filter(Boolean),
+      skills: member.skills.map((s) => s.name).filter(Boolean),
       projects: projectPercentages,
       totalPercentage,
     };

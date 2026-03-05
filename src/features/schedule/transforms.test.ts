@@ -1,11 +1,17 @@
 import { describe, it, expect } from 'vitest';
 import { transformToScheduleRows, transformToMonthlyView } from './transforms';
+import type { MemberWithSkills, AssignmentWithProject, MonthlyAssignmentWithProject } from './api';
 
-const makeMember = (id: string, name: string, category: '社員' | '入社予定' | 'インターン' | '未定枠' = '社員', skills: string[] = []) => ({
+const makeMember = (
+  id: string,
+  name: string,
+  category: '社員' | '入社予定' | 'インターン' | '未定枠' = '社員',
+  skills: string[] = [],
+): MemberWithSkills => ({
   id,
   name,
   category,
-  member_skills: skills.map((s, i) => ({ skill_id: `s${i}`, skills: { name: s } })),
+  skills: skills.map((s, i) => ({ skill_id: `s${i}`, name: s })),
 });
 
 describe('transformToScheduleRows', () => {
@@ -21,8 +27,8 @@ describe('transformToScheduleRows', () => {
 
   it('単一アサインを正しくマッピングする', () => {
     const members = [makeMember('m1', '田中')];
-    const assignments = [
-      { member_id: 'm1', project_id: 'p1', month: '2026-03-01', percentage: 50, projects: { id: 'p1', name: '案件A' } },
+    const assignments: AssignmentWithProject[] = [
+      { member_id: 'm1', project_id: 'p1', month: '2026-03-01', percentage: 50, project_name: '案件A' },
     ];
 
     const result = transformToScheduleRows(members, assignments);
@@ -39,9 +45,9 @@ describe('transformToScheduleRows', () => {
 
   it('同じ月に複数案件のアサインがある場合、合計を計算する', () => {
     const members = [makeMember('m1', '田中')];
-    const assignments = [
-      { member_id: 'm1', project_id: 'p1', month: '2026-03-01', percentage: 60, projects: { id: 'p1', name: '案件A' } },
-      { member_id: 'm1', project_id: 'p2', month: '2026-03-01', percentage: 50, projects: { id: 'p2', name: '案件B' } },
+    const assignments: AssignmentWithProject[] = [
+      { member_id: 'm1', project_id: 'p1', month: '2026-03-01', percentage: 60, project_name: '案件A' },
+      { member_id: 'm1', project_id: 'p2', month: '2026-03-01', percentage: 50, project_name: '案件B' },
     ];
 
     const result = transformToScheduleRows(members, assignments);
@@ -53,8 +59,8 @@ describe('transformToScheduleRows', () => {
 
   it('percentage が null の場合は 0 として扱う', () => {
     const members = [makeMember('m1', '田中')];
-    const assignments = [
-      { member_id: 'm1', project_id: 'p1', month: '2026-03-01', percentage: null, projects: { id: 'p1', name: '案件A' } },
+    const assignments: AssignmentWithProject[] = [
+      { member_id: 'm1', project_id: 'p1', month: '2026-03-01', percentage: null, project_name: '案件A' },
     ];
 
     const result = transformToScheduleRows(members, assignments);
@@ -73,9 +79,9 @@ describe('transformToScheduleRows', () => {
       makeMember('m1', '田中'),
       makeMember('m2', '鈴木'),
     ];
-    const assignments = [
-      { member_id: 'm1', project_id: 'p1', month: '2026-03-01', percentage: 100, projects: { id: 'p1', name: '案件A' } },
-      { member_id: 'm2', project_id: 'p1', month: '2026-03-01', percentage: 50, projects: { id: 'p1', name: '案件A' } },
+    const assignments: AssignmentWithProject[] = [
+      { member_id: 'm1', project_id: 'p1', month: '2026-03-01', percentage: 100, project_name: '案件A' },
+      { member_id: 'm2', project_id: 'p1', month: '2026-03-01', percentage: 50, project_name: '案件A' },
     ];
 
     const result = transformToScheduleRows(members, assignments);
@@ -86,9 +92,9 @@ describe('transformToScheduleRows', () => {
 
   it('複数月にまたがるアサインを正しく分類する', () => {
     const members = [makeMember('m1', '田中')];
-    const assignments = [
-      { member_id: 'm1', project_id: 'p1', month: '2026-03-01', percentage: 80, projects: { id: 'p1', name: '案件A' } },
-      { member_id: 'm1', project_id: 'p1', month: '2026-04-01', percentage: 60, projects: { id: 'p1', name: '案件A' } },
+    const assignments: AssignmentWithProject[] = [
+      { member_id: 'm1', project_id: 'p1', month: '2026-03-01', percentage: 80, project_name: '案件A' },
+      { member_id: 'm1', project_id: 'p1', month: '2026-04-01', percentage: 60, project_name: '案件A' },
     ];
 
     const result = transformToScheduleRows(members, assignments);
@@ -111,10 +117,10 @@ describe('transformToMonthlyView', () => {
 
   it('一意な案件リストを抽出する', () => {
     const members = [makeMember('m1', '田中'), makeMember('m2', '鈴木')];
-    const assignments = [
-      { member_id: 'm1', project_id: 'p1', percentage: 50, projects: { id: 'p1', name: '案件A' } },
-      { member_id: 'm2', project_id: 'p1', percentage: 30, projects: { id: 'p1', name: '案件A' } },
-      { member_id: 'm1', project_id: 'p2', percentage: 50, projects: { id: 'p2', name: '案件B' } },
+    const assignments: MonthlyAssignmentWithProject[] = [
+      { member_id: 'm1', project_id: 'p1', percentage: 50, project_name: '案件A' },
+      { member_id: 'm2', project_id: 'p1', percentage: 30, project_name: '案件A' },
+      { member_id: 'm1', project_id: 'p2', percentage: 50, project_name: '案件B' },
     ];
 
     const result = transformToMonthlyView(members, assignments);
@@ -125,9 +131,9 @@ describe('transformToMonthlyView', () => {
 
   it('メンバーごとの合計稼働%を正しく計算する', () => {
     const members = [makeMember('m1', '田中')];
-    const assignments = [
-      { member_id: 'm1', project_id: 'p1', percentage: 60, projects: { id: 'p1', name: '案件A' } },
-      { member_id: 'm1', project_id: 'p2', percentage: 50, projects: { id: 'p2', name: '案件B' } },
+    const assignments: MonthlyAssignmentWithProject[] = [
+      { member_id: 'm1', project_id: 'p1', percentage: 60, project_name: '案件A' },
+      { member_id: 'm1', project_id: 'p2', percentage: 50, project_name: '案件B' },
     ];
 
     const result = transformToMonthlyView(members, assignments);
@@ -139,8 +145,8 @@ describe('transformToMonthlyView', () => {
 
   it('percentage が null の場合は 0 として扱う', () => {
     const members = [makeMember('m1', '田中')];
-    const assignments = [
-      { member_id: 'm1', project_id: 'p1', percentage: null, projects: { id: 'p1', name: '案件A' } },
+    const assignments: MonthlyAssignmentWithProject[] = [
+      { member_id: 'm1', project_id: 'p1', percentage: null, project_name: '案件A' },
     ];
 
     const result = transformToMonthlyView(members, assignments);
