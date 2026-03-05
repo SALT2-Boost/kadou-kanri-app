@@ -4,6 +4,7 @@ import type { ScheduleCell as ScheduleCellType } from '../types';
 
 interface ScheduleCellProps {
   cell: ScheduleCellType | undefined;
+  month: string;
   onClick: (event: React.MouseEvent<HTMLTableCellElement>) => void;
 }
 
@@ -20,24 +21,26 @@ function getCellStyles(totalPercentage: number | undefined) {
   return { bgcolor: 'grey.50' };
 }
 
-const ScheduleCellComponent = memo(function ScheduleCellComponent({ cell, onClick }: ScheduleCellProps) {
+const ScheduleCellComponent = memo(function ScheduleCellComponent({ cell, month, onClick }: ScheduleCellProps) {
   const totalPercentage = cell?.totalPercentage;
+  const hasData = totalPercentage != null && totalPercentage > 0;
   const styles = getCellStyles(totalPercentage);
 
   return (
     <TableCell
       align="center"
-      onClick={cell && cell.totalPercentage > 0 ? onClick : undefined}
+      data-month={month}
+      onClick={hasData ? onClick : undefined}
       sx={{
         ...styles,
-        cursor: cell && cell.totalPercentage > 0 ? 'pointer' : 'default',
-        '&:hover': cell && cell.totalPercentage > 0 ? { opacity: 0.8 } : {},
+        cursor: hasData ? 'pointer' : 'default',
+        '&:hover': hasData ? { opacity: 0.8 } : {},
         py: 0.5,
         px: 1,
         minWidth: 60,
       }}
     >
-      {totalPercentage && totalPercentage > 0 ? `${totalPercentage}%` : ''}
+      {hasData ? `${totalPercentage}%` : ''}
     </TableCell>
   );
 });

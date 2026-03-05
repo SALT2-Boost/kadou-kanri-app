@@ -15,7 +15,7 @@ function renderInTable(ui: React.ReactElement) {
 
 describe('ScheduleCell', () => {
   it('cell が undefined の場合は空表示', () => {
-    renderInTable(<ScheduleCellComponent cell={undefined} onClick={vi.fn()} />);
+    renderInTable(<ScheduleCellComponent cell={undefined} month="2026-03-01" onClick={vi.fn()} />);
     const cell = screen.getByRole('cell');
     expect(cell.textContent).toBe('');
   });

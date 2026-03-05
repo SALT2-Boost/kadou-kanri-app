@@ -121,8 +121,11 @@ interface MemberRowProps {
 
 const MemberRow = memo(function MemberRow({ row, months, onCellClick }: MemberRowProps) {
   const isPlaceholder = row.category === '未定枠';
+
   const handleCellClick = useCallback(
-    (month: string) => (e: React.MouseEvent<HTMLTableCellElement>) => {
+    (e: React.MouseEvent<HTMLTableCellElement>) => {
+      const month = (e.currentTarget as HTMLElement).dataset.month;
+      if (!month) return;
       const cell = row.months[month];
       if (cell) onCellClick(e, cell);
     },
@@ -169,7 +172,8 @@ const MemberRow = memo(function MemberRow({ row, months, onCellClick }: MemberRo
         <ScheduleCellComponent
           key={month}
           cell={row.months[month]}
-          onClick={handleCellClick(month)}
+          month={month}
+          onClick={handleCellClick}
         />
       ))}
     </TableRow>
