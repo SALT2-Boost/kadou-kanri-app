@@ -53,4 +53,16 @@ describe('MonthlyScheduleTable', () => {
     expect(screen.getByText('非常に長い案件名でも見切れずに表示したい案件A')).toBeInTheDocument();
     expect(screen.getAllByText('80%')[0]).toBeInTheDocument();
   });
+
+  it('左側の人情報列を sticky で固定する', () => {
+    render(<MonthlyScheduleTable rows={[confirmedRow]} projects={projects} />);
+
+    const nameHeader = screen.getByText('メンバー名').closest('th');
+    const roleHeader = screen.getByText('role').closest('th');
+    const skillsHeader = screen.getByText('スキル').closest('th');
+
+    expect(nameHeader).toHaveStyle({ position: 'sticky', left: '0px' });
+    expect(roleHeader).toHaveStyle({ position: 'sticky', left: '220px' });
+    expect(skillsHeader).toHaveStyle({ position: 'sticky', left: '400px' });
+  });
 });

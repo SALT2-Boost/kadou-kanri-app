@@ -100,8 +100,17 @@ export default function MonthlyScheduleTable({ rows, projects }: MonthlySchedule
     TOTAL_COLUMN_WIDTH;
 
   return (
-    <Box sx={{ overflowX: 'auto' }}>
-      <TableContainer sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
+    <Box>
+      <TableContainer
+        sx={{
+          maxWidth: '100%',
+          overflowX: 'auto',
+          position: 'relative',
+          border: '1px solid',
+          borderColor: 'divider',
+          borderRadius: 1,
+        }}
+      >
         <Table stickyHeader size="small" sx={{ minWidth: tableMinWidth, tableLayout: 'fixed' }}>
           <TableHead>
             <TableRow>
