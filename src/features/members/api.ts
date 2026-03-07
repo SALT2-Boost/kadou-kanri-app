@@ -8,6 +8,7 @@ export async function fetchMembers(): Promise<MemberWithSkills[]> {
     .select('*, member_skills(skill_id, skills(id, name))')
     .eq('is_active', true)
     .eq('is_placeholder', false)
+    .neq('category', '未定枠')
     .order('name');
 
   if (error) throw error;

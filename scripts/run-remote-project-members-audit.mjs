@@ -220,7 +220,8 @@ const legacyPlaceholderMembersStillReferenced = projectMembers
     if (row.member_id === null) return [];
 
     const member = memberMap.get(row.member_id);
-    if (!member?.is_placeholder) return [];
+    if (!member) return [];
+    if (!member.is_placeholder && member.category !== '未定枠') return [];
 
     return [
       {
@@ -228,15 +229,20 @@ const legacyPlaceholderMembersStillReferenced = projectMembers
         project_id: row.project_id,
         member_id: row.member_id,
         member_name: member.name,
+        member_category: member.category,
+        member_is_active: member.is_active,
+        member_is_placeholder: member.is_placeholder,
       },
     ];
   });
 
 const activeLegacyPlaceholderMembers = members
-  .filter((row) => row.is_active && row.is_placeholder)
+  .filter((row) => row.is_active && (row.is_placeholder || row.category === '未定枠'))
   .map((row) => ({
     member_id: row.id,
     name: row.name,
+    category: row.category,
+    is_placeholder: row.is_placeholder,
     placeholder_project_id: row.placeholder_project_id,
   }));
 
@@ -287,12 +293,12 @@ const invariants = [
     confirmedProjectMembersMissingMembers,
   ),
   toInvariant(
-    'legacy_placeholder_members_still_referenced',
+    'legacy_unconfirmed_members_still_confirmed',
     'blocking',
     legacyPlaceholderMembersStillReferenced,
   ),
   toInvariant(
-    'active_legacy_placeholder_members_hidden_from_master_views',
+    'active_legacy_unconfirmed_members_hidden_from_master_views',
     'informational',
     activeLegacyPlaceholderMembers,
   ),

@@ -5,7 +5,7 @@ This runbook aligns `Vercel Production` with the intended app revision and verif
 ## Release inputs to record
 
 - git SHA
-- target migration version: `20260307000015`
+- target migration version: `20260307000016`
 - preview deployment URL
 - production deployment URL
 - audit report path before repair

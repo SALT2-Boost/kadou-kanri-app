@@ -129,6 +129,44 @@ describe('transformToMonthlyView', () => {
     });
     expect(result.rows[0].skills).toEqual(['進行管理']);
   });
+
+  it('legacy な未定枠 member を参照していても未確定行へ切り出す', () => {
+    const result = transformToMonthlyView(
+      [],
+      [
+        makeProjectMember({
+          id: 'pm-legacy',
+          member_id: 'legacy-placeholder',
+          name: 'AIE要員',
+          role: 'AIE',
+          members: {
+            id: 'legacy-placeholder',
+            name: 'AIE要員',
+            category: '未定枠',
+          },
+          project_member_skills: [
+            {
+              skill_id: 's-4',
+              skills: {
+                id: 's-4',
+                name: 'AIE',
+              },
+            },
+          ],
+        }),
+      ],
+    );
+
+    expect(result.rows[0]).toMatchObject({
+      rowId: 'pm-legacy',
+      memberId: null,
+      memberName: 'AIE要員',
+      role: 'AIE',
+      isUnconfirmed: true,
+      category: '未定枠',
+    });
+    expect(result.rows[0].skills).toEqual(['AIE']);
+  });
 });
 
 describe('buildPeriodRows', () => {
@@ -186,6 +224,35 @@ describe('buildPeriodRows', () => {
     expect(rows.find((row) => row.rowId === 'pm-2')).toMatchObject({
       memberName: '未定要員(QA)',
       role: 'QA',
+      isUnconfirmed: true,
+      category: '未定枠',
+    });
+  });
+
+  it('期間ビューでも legacy な未定枠 member 参照は未確定として扱う', () => {
+    const rows = buildPeriodRows(
+      [],
+      [
+        makeProjectMember({
+          id: 'pm-legacy',
+          member_id: 'legacy-placeholder',
+          name: 'SWE要員',
+          role: 'SWE',
+          members: {
+            id: 'legacy-placeholder',
+            name: 'SWE要員',
+            category: '未定枠',
+          },
+        }),
+      ],
+    );
+
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({
+      rowId: 'pm-legacy',
+      memberId: null,
+      memberName: 'SWE要員',
+      role: 'SWE',
       isUnconfirmed: true,
       category: '未定枠',
     });

@@ -1,5 +1,6 @@
 import type { MemberWithSkills, ProjectMemberWithAssignments } from './api';
 import type { MonthlyViewProject, MonthlyViewRow, ScheduleRow } from './types';
+import { isUnconfirmedProjectMember } from '@/shared/lib/projectMembers';
 
 interface ScheduleFilterInput {
   categories: string[];
@@ -37,8 +38,9 @@ export function buildPeriodRows(
 
   for (const projectMember of projectMembers) {
     const projectSkillNames = projectMember.project_member_skills.map((link) => link.skills.name);
+    const treatAsUnconfirmed = isUnconfirmedProjectMember(projectMember);
 
-    if (projectMember.member_id) {
+    if (!treatAsUnconfirmed && projectMember.member_id) {
       const key = projectMember.member_id;
       const existing =
         rows.get(key) ??
@@ -136,8 +138,9 @@ export function transformToMonthlyView(
       (sum, assignment) => sum + (assignment.percentage ?? 0),
       0,
     );
+    const treatAsUnconfirmed = isUnconfirmedProjectMember(projectMember);
 
-    if (projectMember.member_id) {
+    if (!treatAsUnconfirmed && projectMember.member_id) {
       const key = projectMember.member_id;
       const existing =
         rows.get(key) ??

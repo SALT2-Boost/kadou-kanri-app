@@ -1,5 +1,5 @@
 -- Remote project_members migration audit
--- Read-only audit for the post-20260307000015 data model.
+-- Read-only audit for the post-20260307000016 data model.
 -- Result set 1: counts by invariant.
 -- Result set 2: sample offending rows by invariant.
 
@@ -75,18 +75,24 @@ WITH audit_counts AS (
 
   UNION ALL
 
-  SELECT 'legacy_placeholder_members_still_referenced', 'blocking', COUNT(*)::bigint
+  SELECT 'legacy_unconfirmed_members_still_confirmed', 'blocking', COUNT(*)::bigint
   FROM project_members pm
   JOIN members m ON m.id = pm.member_id
   WHERE pm.member_id IS NOT NULL
-    AND COALESCE(m.is_placeholder, false) = true
+    AND (
+      COALESCE(m.is_placeholder, false) = true
+      OR m.category = '未定枠'
+    )
 
   UNION ALL
 
-  SELECT 'active_legacy_placeholder_members_hidden_from_master_views', 'informational', COUNT(*)::bigint
+  SELECT 'active_legacy_unconfirmed_members_hidden_from_master_views', 'informational', COUNT(*)::bigint
   FROM members m
   WHERE m.is_active = true
-    AND COALESCE(m.is_placeholder, false) = true
+    AND (
+      COALESCE(m.is_placeholder, false) = true
+      OR m.category = '未定枠'
+    )
 )
 SELECT *
 FROM audit_counts
@@ -316,7 +322,7 @@ WITH audit_samples AS (
   UNION ALL
 
   SELECT
-    'legacy_placeholder_members_still_referenced',
+    'legacy_unconfirmed_members_still_confirmed',
     COALESCE(
       (
         SELECT jsonb_agg(sample_row)
@@ -325,12 +331,18 @@ WITH audit_samples AS (
             'project_member_id', pm.id,
             'project_id', pm.project_id,
             'member_id', pm.member_id,
-            'member_name', m.name
+            'member_name', m.name,
+            'member_category', m.category,
+            'member_is_active', m.is_active,
+            'member_is_placeholder', m.is_placeholder
           ) AS sample_row
           FROM project_members pm
           JOIN members m ON m.id = pm.member_id
           WHERE pm.member_id IS NOT NULL
-            AND COALESCE(m.is_placeholder, false) = true
+            AND (
+              COALESCE(m.is_placeholder, false) = true
+              OR m.category = '未定枠'
+            )
           ORDER BY pm.id
           LIMIT 10
         ) sample_rows
@@ -341,7 +353,7 @@ WITH audit_samples AS (
   UNION ALL
 
   SELECT
-    'active_legacy_placeholder_members_hidden_from_master_views',
+    'active_legacy_unconfirmed_members_hidden_from_master_views',
     COALESCE(
       (
         SELECT jsonb_agg(sample_row)
@@ -349,11 +361,16 @@ WITH audit_samples AS (
           SELECT jsonb_build_object(
             'member_id', m.id,
             'name', m.name,
+            'category', m.category,
+            'is_placeholder', m.is_placeholder,
             'placeholder_project_id', m.placeholder_project_id
           ) AS sample_row
           FROM members m
           WHERE m.is_active = true
-            AND COALESCE(m.is_placeholder, false) = true
+            AND (
+              COALESCE(m.is_placeholder, false) = true
+              OR m.category = '未定枠'
+            )
           ORDER BY m.id
           LIMIT 10
         ) sample_rows

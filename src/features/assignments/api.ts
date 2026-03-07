@@ -44,6 +44,7 @@ export async function fetchActiveMembers(): Promise<ActiveMember[]> {
     .select('id, name, role, category, member_skills(skill_id, skills(id, name))')
     .eq('is_active', true)
     .eq('is_placeholder', false)
+    .neq('category', '未定枠')
     .order('name');
 
   if (error) throw error;

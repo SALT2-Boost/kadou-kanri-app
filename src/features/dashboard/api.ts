@@ -1,4 +1,5 @@
 import { supabase } from '@/shared/lib/supabase';
+import { isUnconfirmedProjectMember } from '@/shared/lib/projectMembers';
 
 interface RevenueAssignment {
   month: string;
@@ -15,6 +16,10 @@ interface OverloadQueryRow {
   percentage: number | null;
   project_members: {
     name: string;
+    member_id: string | null;
+    members: {
+      category: string | null;
+    } | null;
   } | null;
 }
 
@@ -51,7 +56,7 @@ export async function fetchOverloadAlerts(): Promise<OverloadAssignment[]> {
   const { startMonth, endMonth } = getDefaultDateRange();
   const { data, error } = await supabase
     .from('assignments')
-    .select('member_id, month, percentage, project_members(name)')
+    .select('member_id, month, percentage, project_members(name, member_id, members(category))')
     .gte('month', startMonth)
     .lte('month', endMonth);
   if (error) throw error;
@@ -61,7 +66,9 @@ export async function fetchOverloadAlerts(): Promise<OverloadAssignment[]> {
     month: row.month,
     percentage: row.percentage,
     member_name: row.project_members?.name ?? '不明',
-    is_unconfirmed: row.member_id === null,
+    is_unconfirmed: row.project_members
+      ? isUnconfirmedProjectMember(row.project_members)
+      : row.member_id === null,
   }));
 }
 
@@ -85,6 +92,7 @@ export async function fetchUnassignedMembers(): Promise<UnassignedResult> {
       .select('id, name, category')
       .eq('is_active', true)
       .eq('is_placeholder', false)
+      .neq('category', '未定枠')
       .order('name'),
     supabase
       .from('assignments')

@@ -117,4 +117,29 @@ describe('buildProjectMemberRows', () => {
       skillNames: ['進行管理'],
     });
   });
+
+  it('legacy な未定枠 member を参照していても未確定行として扱う', () => {
+    const rows = buildProjectMemberRows([
+      makeProjectMember({
+        id: 'pm-legacy',
+        member_id: 'legacy-placeholder',
+        name: 'AIE要員',
+        role: 'AIE',
+        members: {
+          id: 'legacy-placeholder',
+          name: 'AIE要員',
+          category: '未定枠',
+          role: 'AIE',
+        },
+      }),
+    ]);
+
+    expect(rows[0]).toMatchObject({
+      projectMemberId: 'pm-legacy',
+      memberId: null,
+      memberName: 'AIE要員',
+      role: 'AIE',
+      isUnconfirmed: true,
+    });
+  });
 });
