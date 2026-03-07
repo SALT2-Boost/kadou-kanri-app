@@ -3,15 +3,16 @@ interface RevenueAssignment {
   project_id: string;
   projects: {
     monthly_revenue: number | null;
-    status: '確定' | '提案済' | '提案';
+    status: '確定' | '提案済' | '提案予定';
   } | null;
 }
 
 interface OverloadAssignment {
-  member_id: string;
+  member_id: string | null;
   month: string;
   percentage: number | null;
-  members: { name: string } | null;
+  member_name: string;
+  is_unconfirmed: boolean;
 }
 
 interface UnassignedInput {
@@ -57,7 +58,7 @@ export function transformRevenueData(data: RevenueAssignment[]): RevenueRow[] {
 
     if (status === '確定') entry.confirmed += revenue;
     else if (status === '提案済') entry.proposed += revenue;
-    else if (status === '提案') entry.draft += revenue;
+    else if (status === '提案予定') entry.draft += revenue;
   }
 
   return Array.from(monthMap.entries())
@@ -69,10 +70,13 @@ export function transformOverloadAlerts(data: OverloadAssignment[]): OverloadAle
   const grouped = new Map<string, { memberName: string; month: string; total: number }>();
 
   for (const row of data) {
+    if (row.is_unconfirmed || row.member_id === null) {
+      continue;
+    }
     const key = `${row.member_id}_${row.month}`;
     if (!grouped.has(key)) {
       grouped.set(key, {
-        memberName: row.members?.name ?? '不明',
+        memberName: row.member_name || '不明',
         month: row.month,
         total: 0,
       });

@@ -5,17 +5,25 @@ interface RevenueAssignment {
   project_id: string;
   projects: {
     monthly_revenue: number | null;
-    status: '確定' | '提案済' | '提案';
+    status: '確定' | '提案済' | '提案予定';
   } | null;
 }
 
-interface OverloadAssignment {
-  member_id: string;
+interface OverloadQueryRow {
+  member_id: string | null;
   month: string;
   percentage: number | null;
-  members: {
+  project_members: {
     name: string;
   } | null;
+}
+
+export interface OverloadAssignment {
+  member_id: string | null;
+  month: string;
+  percentage: number | null;
+  member_name: string;
+  is_unconfirmed: boolean;
 }
 
 function getDefaultDateRange() {
@@ -43,11 +51,18 @@ export async function fetchOverloadAlerts(): Promise<OverloadAssignment[]> {
   const { startMonth, endMonth } = getDefaultDateRange();
   const { data, error } = await supabase
     .from('assignments')
-    .select('member_id, month, percentage, members(name)')
+    .select('member_id, month, percentage, project_members(name)')
     .gte('month', startMonth)
     .lte('month', endMonth);
   if (error) throw error;
-  return data as OverloadAssignment[];
+
+  return ((data ?? []) as OverloadQueryRow[]).map((row) => ({
+    member_id: row.member_id,
+    month: row.month,
+    percentage: row.percentage,
+    member_name: row.project_members?.name ?? '不明',
+    is_unconfirmed: row.member_id === null,
+  }));
 }
 
 interface UnassignedResult {
@@ -69,10 +84,12 @@ export async function fetchUnassignedMembers(): Promise<UnassignedResult> {
       .from('members')
       .select('id, name, category')
       .eq('is_active', true)
+      .eq('is_placeholder', false)
       .order('name'),
     supabase
       .from('assignments')
       .select('member_id')
+      .not('member_id', 'is', null)
       .gte('month', startMonth)
       .lte('month', endMonth),
   ]);

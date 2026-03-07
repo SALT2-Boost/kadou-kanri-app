@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Box,
   Button,
@@ -18,17 +18,19 @@ import {
   TableRow,
   Tooltip,
   Typography,
+  Chip,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
+import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
 import LoadingOverlay from '@/shared/ui/LoadingOverlay';
-import {
-  useAssignmentsByProject,
-  useUpsertAssignment,
-  useDeleteAssignmentsByMemberAndProject,
-} from '../hooks';
+import { useAssignmentsByProject, useDeleteProjectMember, useUpsertAssignment } from '../hooks';
+import { buildProjectMemberRows } from '../transforms';
+import type { ProjectMemberWithAssignments } from '../types';
 import AssignmentCell from './AssignmentCell';
 import AssignMemberDialog from './AssignMemberDialog';
+import ConfirmProjectMemberDialog from './ConfirmProjectMemberDialog';
 
 interface AssignmentTableProps {
   projectId: string;
@@ -42,18 +44,14 @@ function generateMonths(start: string, end: string | null): string[] {
   const endDate = end ? new Date(end) : null;
 
   if (!endDate) {
-    for (let i = 0; i < 12; i++) {
-      const d = new Date(startDate.getFullYear(), startDate.getMonth() + i, 1);
-      months.push(
-        `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`
-      );
+    for (let i = 0; i < 12; i += 1) {
+      const date = new Date(startDate.getFullYear(), startDate.getMonth() + i, 1);
+      months.push(`${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-01`);
     }
   } else {
     const current = new Date(startDate);
     while (current <= endDate) {
-      months.push(
-        `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, '0')}-01`
-      );
+      months.push(`${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, '0')}-01`);
       current.setMonth(current.getMonth() + 1);
     }
   }
@@ -62,79 +60,36 @@ function generateMonths(start: string, end: string | null): string[] {
 }
 
 function formatMonthLabel(month: string): string {
-  const [year, m] = month.split('-');
-  return `${year}/${m}`;
+  const [year, value] = month.split('-');
+  return `${year}/${value}`;
 }
 
-interface MemberRow {
-  memberId: string;
-  memberName: string;
-  cells: Map<string, { assignmentId: string; percentage: number | null }>;
-}
-
-export default function AssignmentTable({
-  projectId,
-  startMonth,
-  endMonth,
-}: AssignmentTableProps) {
-  const { data: assignments, isLoading } = useAssignmentsByProject(projectId);
+export default function AssignmentTable({ projectId, startMonth, endMonth }: AssignmentTableProps) {
+  const { data: projectMembers, isLoading } = useAssignmentsByProject(projectId);
   const upsertAssignment = useUpsertAssignment();
-  const deleteByMemberAndProject = useDeleteAssignmentsByMemberAndProject();
+  const deleteProjectMember = useDeleteProjectMember();
 
   const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [editTarget, setEditTarget] = useState<ProjectMemberWithAssignments | null>(null);
+  const [confirmTarget, setConfirmTarget] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{
-    memberId: string;
+    projectMemberId: string;
     memberName: string;
+    isUnconfirmed: boolean;
   } | null>(null);
 
-  const months = useMemo(
-    () => generateMonths(startMonth, endMonth),
-    [startMonth, endMonth]
-  );
+  const months = useMemo(() => generateMonths(startMonth, endMonth), [startMonth, endMonth]);
 
-  const rows = useMemo(() => {
-    if (!assignments) return [];
-
-    const memberMap = new Map<string, MemberRow>();
-
-    for (const a of assignments) {
-      let row = memberMap.get(a.member_id);
-      if (!row) {
-        row = {
-          memberId: a.member_id,
-          memberName: a.members.name,
-          cells: new Map(),
-        };
-        memberMap.set(a.member_id, row);
-      }
-      row.cells.set(a.month, {
-        assignmentId: a.id,
-        percentage: a.percentage,
-      });
-      // Update name if it was empty (from optimistic update)
-      if (a.members.name && !row.memberName) {
-        row.memberName = a.members.name;
-      }
-    }
-
-    return Array.from(memberMap.values()).sort((a, b) =>
-      a.memberName.localeCompare(b.memberName, 'ja')
-    );
-  }, [assignments]);
+  const rows = useMemo(() => buildProjectMemberRows(projectMembers ?? []), [projectMembers]);
 
   const existingMemberIds = useMemo(
-    () => rows.map((r) => r.memberId),
-    [rows]
+    () => rows.flatMap((row) => (row.memberId ? [row.memberId] : [])),
+    [rows],
   );
 
-  const handleCellChange = (
-    memberId: string,
-    month: string,
-    value: number | null
-  ) => {
+  const handleCellChange = (projectMemberId: string, month: string, value: number | null) => {
     upsertAssignment.mutate({
-      member_id: memberId,
-      project_id: projectId,
+      project_member_id: projectMemberId,
       month,
       percentage: value,
     });
@@ -142,27 +97,18 @@ export default function AssignmentTable({
 
   const handleDeleteMember = () => {
     if (!deleteTarget) return;
-    deleteByMemberAndProject.mutate(
-      {
-        memberId: deleteTarget.memberId,
-        projectId,
-      },
-      { onSuccess: () => setDeleteTarget(null) }
-    );
+    deleteProjectMember.mutate(deleteTarget.projectMemberId, {
+      onSuccess: () => setDeleteTarget(null),
+    });
   };
 
   if (isLoading) return <LoadingOverlay />;
 
   return (
     <Paper variant="outlined" sx={{ p: 3 }}>
-      <Stack
-        direction="row"
-        justifyContent="space-between"
-        alignItems="center"
-        sx={{ mb: 2 }}
-      >
+      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
         <Typography variant="h6" fontWeight="bold">
-          アサイン
+          PJメンバー
         </Typography>
         <Button
           variant="outlined"
@@ -170,7 +116,7 @@ export default function AssignmentTable({
           onClick={() => setAddDialogOpen(true)}
           size="small"
         >
-          メンバー追加
+          PJメンバー追加
         </Button>
       </Stack>
 
@@ -185,27 +131,16 @@ export default function AssignmentTable({
             borderRadius: 1,
           }}
         >
-          <Typography color="text.secondary">
-            アサインされたメンバーがいません
-          </Typography>
+          <Typography color="text.secondary">PJメンバーがまだ設定されていません</Typography>
         </Box>
       ) : (
         <TableContainer>
           <Table size="small">
             <TableHead>
               <TableRow>
-                <TableCell
-                  sx={{
-                    fontWeight: 'bold',
-                    position: 'sticky',
-                    left: 0,
-                    bgcolor: 'background.paper',
-                    zIndex: 1,
-                    minWidth: 140,
-                  }}
-                >
-                  メンバー
-                </TableCell>
+                <TableCell sx={{ fontWeight: 'bold', minWidth: 180 }}>メンバー</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', minWidth: 120 }}>role</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', minWidth: 200 }}>skills</TableCell>
                 {months.map((month) => (
                   <TableCell
                     key={month}
@@ -215,22 +150,34 @@ export default function AssignmentTable({
                     {formatMonthLabel(month)}
                   </TableCell>
                 ))}
-                <TableCell sx={{ width: 48 }} />
+                <TableCell sx={{ width: 120 }} />
               </TableRow>
             </TableHead>
             <TableBody>
               {rows.map((row) => (
-                <TableRow key={row.memberId} hover>
-                  <TableCell
-                    sx={{
-                      position: 'sticky',
-                      left: 0,
-                      bgcolor: 'background.paper',
-                      zIndex: 1,
-                      fontWeight: 500,
-                    }}
-                  >
-                    {row.memberName}
+                <TableRow
+                  key={row.projectMemberId}
+                  hover
+                  sx={row.isUnconfirmed ? { bgcolor: 'rgba(255, 152, 0, 0.04)' } : undefined}
+                >
+                  <TableCell sx={{ fontWeight: 500 }}>
+                    <Stack spacing={0.5}>
+                      <Stack direction="row" spacing={0.75} alignItems="center">
+                        <Typography fontWeight={500}>{row.memberName}</Typography>
+                        {row.isUnconfirmed && <Chip label="未確定" size="small" color="warning" />}
+                      </Stack>
+                      {row.note && (
+                        <Typography variant="caption" color="text.secondary">
+                          {row.note}
+                        </Typography>
+                      )}
+                    </Stack>
+                  </TableCell>
+                  <TableCell>{row.role}</TableCell>
+                  <TableCell>
+                    <Typography variant="body2" color="text.secondary">
+                      {row.skillNames.join(' / ')}
+                    </Typography>
                   </TableCell>
                   {months.map((month) => {
                     const cell = row.cells.get(month);
@@ -238,28 +185,53 @@ export default function AssignmentTable({
                       <TableCell key={month} align="center" sx={{ p: 0.5 }}>
                         <AssignmentCell
                           value={cell?.percentage ?? null}
-                          onChange={(value) =>
-                            handleCellChange(row.memberId, month, value)
-                          }
+                          onChange={(value) => handleCellChange(row.projectMemberId, month, value)}
                         />
                       </TableCell>
                     );
                   })}
                   <TableCell sx={{ p: 0.5 }}>
-                    <Tooltip title="このメンバーのアサインを全て削除">
-                      <IconButton
-                        size="small"
-                        color="error"
-                        onClick={() =>
-                          setDeleteTarget({
-                            memberId: row.memberId,
-                            memberName: row.memberName,
-                          })
-                        }
-                      >
-                        <DeleteIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
+                    <Stack direction="row" spacing={0.5}>
+                      {row.isUnconfirmed && (
+                        <Tooltip title="実メンバーへ差し替え">
+                          <IconButton
+                            size="small"
+                            color="primary"
+                            onClick={() => setConfirmTarget(row.projectMemberId)}
+                          >
+                            <SwapHorizIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      )}
+                      <Tooltip title="PJメンバー編集">
+                        <IconButton
+                          size="small"
+                          onClick={() =>
+                            setEditTarget(
+                              projectMembers?.find((item) => item.id === row.projectMemberId) ??
+                                null,
+                            )
+                          }
+                        >
+                          <EditIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="PJメンバー削除">
+                        <IconButton
+                          size="small"
+                          color="error"
+                          onClick={() =>
+                            setDeleteTarget({
+                              projectMemberId: row.projectMemberId,
+                              memberName: row.memberName,
+                              isUnconfirmed: row.isUnconfirmed,
+                            })
+                          }
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    </Stack>
                   </TableCell>
                 </TableRow>
               ))}
@@ -277,14 +249,30 @@ export default function AssignmentTable({
         existingMemberIds={existingMemberIds}
       />
 
-      <Dialog
-        open={deleteTarget !== null}
-        onClose={() => setDeleteTarget(null)}
-      >
-        <DialogTitle>アサインを削除</DialogTitle>
+      <AssignMemberDialog
+        open={editTarget !== null}
+        onClose={() => setEditTarget(null)}
+        projectId={projectId}
+        startMonth={startMonth}
+        endMonth={endMonth}
+        existingMemberIds={existingMemberIds}
+        projectMember={editTarget}
+      />
+
+      <ConfirmProjectMemberDialog
+        open={confirmTarget !== null}
+        onClose={() => setConfirmTarget(null)}
+        projectMemberId={confirmTarget}
+        existingMemberIds={existingMemberIds}
+      />
+
+      <Dialog open={deleteTarget !== null} onClose={() => setDeleteTarget(null)}>
+        <DialogTitle>PJメンバーを削除</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            「{deleteTarget?.memberName}」のアサインを全て削除しますか？
+            {deleteTarget?.isUnconfirmed
+              ? `「${deleteTarget?.memberName}」を未確定枠ごと削除しますか？`
+              : `「${deleteTarget?.memberName}」のPJメンバー設定と稼働を削除しますか？`}
           </DialogContentText>
         </DialogContent>
         <DialogActions>
@@ -295,7 +283,7 @@ export default function AssignmentTable({
             onClick={handleDeleteMember}
             color="error"
             variant="contained"
-            disabled={deleteByMemberAndProject.isPending}
+            disabled={deleteProjectMember.isPending}
           >
             削除
           </Button>

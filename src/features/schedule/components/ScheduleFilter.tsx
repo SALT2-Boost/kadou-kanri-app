@@ -19,6 +19,8 @@ interface ScheduleFilterProps {
   onSkillsChange: (skills: string[]) => void;
   searchText: string;
   onSearchTextChange: (text: string) => void;
+  onlyUnconfirmed: boolean;
+  onOnlyUnconfirmedChange: (value: boolean) => void;
   skills: Array<{ id: string; name: string }>;
 }
 
@@ -29,6 +31,8 @@ export default function ScheduleFilter({
   onSkillsChange,
   searchText,
   onSearchTextChange,
+  onlyUnconfirmed,
+  onOnlyUnconfirmedChange,
   skills,
 }: ScheduleFilterProps) {
   const handleCategoryToggle = (category: string) => {
@@ -101,6 +105,17 @@ export default function ScheduleFilter({
           },
         }}
         sx={{ minWidth: 200 }}
+      />
+
+      <FormControlLabel
+        control={
+          <Checkbox
+            size="small"
+            checked={onlyUnconfirmed}
+            onChange={(_event, checked) => onOnlyUnconfirmedChange(checked)}
+          />
+        }
+        label="未確定のみ"
       />
     </Stack>
   );

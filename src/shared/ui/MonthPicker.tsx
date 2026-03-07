@@ -8,6 +8,7 @@ interface MonthPickerProps {
   required?: boolean;
   fullWidth?: boolean;
   yearRange?: [number, number];
+  minMonth?: string;
 }
 
 function generateMonthOptions(yearRange: [number, number]) {
@@ -28,11 +29,16 @@ export default function MonthPicker({
   required = false,
   fullWidth = false,
   yearRange,
+  minMonth,
 }: MonthPickerProps) {
   const currentYear = new Date().getFullYear();
-  const range = yearRange ?? [currentYear - 1, currentYear + 2];
+  const [startYear, endYear] = yearRange ?? [currentYear - 1, currentYear + 2];
 
-  const options = useMemo(() => generateMonthOptions(range), [range[0], range[1]]);
+  const options = useMemo(() => {
+    const all = generateMonthOptions([startYear, endYear]);
+    if (!minMonth) return all;
+    return all.filter((opt) => opt.value >= minMonth);
+  }, [startYear, endYear, minMonth]);
 
   return (
     <TextField

@@ -53,9 +53,13 @@ export function useCreateMember() {
         const optimistic: MemberWithSkills = {
           id: `temp-${Date.now()}`,
           name: newMember.name,
+          role: newMember.role ?? '未設定',
           category: newMember.category,
           note: newMember.note ?? null,
+          join_date: newMember.join_date ?? null,
           is_active: true,
+          is_placeholder: false,
+          placeholder_project_id: null,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
           member_skills: [],
@@ -72,6 +76,10 @@ export function useCreateMember() {
     },
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: memberKeys.all });
+      void queryClient.invalidateQueries({ queryKey: ['assignments'] });
+      void queryClient.invalidateQueries({ queryKey: ['schedule'] });
+      void queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      void queryClient.invalidateQueries({ queryKey: ['export'] });
     },
   });
 }
@@ -114,6 +122,10 @@ export function useUpdateMember() {
     onSettled: (_data, _err, { id }) => {
       void queryClient.invalidateQueries({ queryKey: memberKeys.all });
       void queryClient.invalidateQueries({ queryKey: memberKeys.detail(id) });
+      void queryClient.invalidateQueries({ queryKey: ['assignments'] });
+      void queryClient.invalidateQueries({ queryKey: ['schedule'] });
+      void queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      void queryClient.invalidateQueries({ queryKey: ['export'] });
     },
   });
 }
@@ -141,6 +153,10 @@ export function useDeleteMember() {
     },
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: memberKeys.all });
+      void queryClient.invalidateQueries({ queryKey: ['assignments'] });
+      void queryClient.invalidateQueries({ queryKey: ['schedule'] });
+      void queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      void queryClient.invalidateQueries({ queryKey: ['export'] });
     },
   });
 }
@@ -154,6 +170,10 @@ export function useUpdateMemberSkills() {
     onSettled: (_data, _err, { memberId }) => {
       void queryClient.invalidateQueries({ queryKey: memberKeys.all });
       void queryClient.invalidateQueries({ queryKey: memberKeys.detail(memberId) });
+      void queryClient.invalidateQueries({ queryKey: ['assignments'] });
+      void queryClient.invalidateQueries({ queryKey: ['schedule'] });
+      void queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      void queryClient.invalidateQueries({ queryKey: ['export'] });
     },
   });
 }

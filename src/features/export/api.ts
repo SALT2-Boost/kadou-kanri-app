@@ -3,6 +3,7 @@ import { supabase } from '@/shared/lib/supabase';
 export interface ExportMember {
   id: string;
   name: string;
+  role: string;
   category: string;
   note: string | null;
   is_active: boolean;
@@ -23,12 +24,13 @@ export interface ExportProject {
 
 export interface ExportAssignment {
   id: string;
-  member_id: string;
+  project_member_id: string;
+  member_id: string | null;
   project_id: string;
   month: string;
   percentage: number | null;
   note: string | null;
-  members: { name: string };
+  project_members: { name: string; role: string } | null;
   projects: { name: string };
 }
 
@@ -40,7 +42,7 @@ export interface ExportSkill {
 export async function fetchAllMembers(): Promise<ExportMember[]> {
   const { data, error } = await supabase
     .from('members')
-    .select('id, name, category, note, is_active, created_at')
+    .select('id, name, role, category, note, is_active, created_at')
     .order('name');
   if (error) throw error;
   return data as ExportMember[];
@@ -49,7 +51,9 @@ export async function fetchAllMembers(): Promise<ExportMember[]> {
 export async function fetchAllProjects(): Promise<ExportProject[]> {
   const { data, error } = await supabase
     .from('projects')
-    .select('id, name, monthly_revenue, start_month, end_month, status, description, note, created_at')
+    .select(
+      'id, name, monthly_revenue, start_month, end_month, status, description, note, created_at',
+    )
     .order('name');
   if (error) throw error;
   return data as ExportProject[];
@@ -58,17 +62,16 @@ export async function fetchAllProjects(): Promise<ExportProject[]> {
 export async function fetchAllAssignments(): Promise<ExportAssignment[]> {
   const { data, error } = await supabase
     .from('assignments')
-    .select('id, member_id, project_id, month, percentage, note, members(name), projects(name)')
+    .select(
+      'id, project_member_id, member_id, project_id, month, percentage, note, project_members(name, role), projects(name)',
+    )
     .order('month');
   if (error) throw error;
   return data as ExportAssignment[];
 }
 
 export async function fetchAllSkills(): Promise<ExportSkill[]> {
-  const { data, error } = await supabase
-    .from('skills')
-    .select('id, name')
-    .order('name');
+  const { data, error } = await supabase.from('skills').select('id, name').order('name');
   if (error) throw error;
   return data as ExportSkill[];
 }

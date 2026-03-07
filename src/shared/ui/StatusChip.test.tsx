@@ -8,7 +8,7 @@ describe('StatusChip', () => {
     expect(screen.getByText('確定')).toBeInTheDocument();
   });
 
-  it.each(['確定', '提案済', '提案'])('ステータス "%s" を表示できる', (status) => {
+  it.each(['確定', '提案済', '提案予定'])('ステータス "%s" を表示できる', (status) => {
     render(<StatusChip status={status} />);
     expect(screen.getByText(status)).toBeInTheDocument();
   });

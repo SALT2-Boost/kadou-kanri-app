@@ -23,7 +23,22 @@ import MonthPicker from '@/shared/ui/MonthPicker';
 import { AssignmentTable } from '@/features/assignments';
 import { useProject, useUpdateProject, useDeleteProject } from '../hooks';
 
-const STATUS_OPTIONS = ['確定', '提案済', '提案'] as const;
+const STATUS_OPTIONS = ['確定', '提案済', '提案予定'] as const;
+const CATEGORY_OPTIONS = ['戦コン', 'AIエージェント', 'システムリプレイス', 'その他'] as const;
+
+function calcMonthCount(start: string, end: string): number | null {
+  if (!start || !end) return null;
+  const [sy, sm] = start.split('-').map(Number);
+  const [ey, em] = end.split('-').map(Number);
+  const diff = (ey - sy) * 12 + (em - sm) + 1;
+  return diff > 0 ? diff : null;
+}
+
+function formatMonthCount(start: string, end: string | null): string {
+  if (!end) return '';
+  const count = calcMonthCount(start.slice(0, 7), end.slice(0, 7));
+  return count ? `（${count}ヶ月）` : '';
+}
 
 export default function ProjectDetail() {
   const { id } = useParams<{ id: string }>();
@@ -37,7 +52,10 @@ export default function ProjectDetail() {
   const [monthlyRevenue, setMonthlyRevenue] = useState('');
   const [startMonth, setStartMonth] = useState('');
   const [endMonth, setEndMonth] = useState('');
-  const [status, setStatus] = useState<'確定' | '提案済' | '提案'>('提案');
+  const [status, setStatus] = useState<'確定' | '提案済' | '提案予定'>('提案予定');
+  const [category, setCategory] = useState<
+    '戦コン' | 'AIエージェント' | 'システムリプレイス' | 'その他'
+  >('その他');
   const [description, setDescription] = useState('');
   const [note, setNote] = useState('');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -45,16 +63,22 @@ export default function ProjectDetail() {
   const startEditing = () => {
     if (!project) return;
     setName(project.name);
-    setMonthlyRevenue(
-      project.monthly_revenue != null ? String(project.monthly_revenue) : ''
-    );
+    setMonthlyRevenue(project.monthly_revenue != null ? String(project.monthly_revenue) : '');
     setStartMonth(project.start_month.slice(0, 7));
     setEndMonth(project.end_month ? project.end_month.slice(0, 7) : '');
     setStatus(project.status);
+    setCategory(project.category);
     setDescription(project.description ?? '');
     setNote(project.note ?? '');
     setEditing(true);
   };
+
+  const handleEndMonthChange = (value: string) => {
+    if (value && startMonth && value < startMonth) return;
+    setEndMonth(value);
+  };
+
+  const monthCount = calcMonthCount(startMonth, endMonth);
 
   const handleSave = () => {
     if (!id || name.trim() === '' || startMonth === '') return;
@@ -68,11 +92,12 @@ export default function ProjectDetail() {
           start_month: `${startMonth}-01`,
           end_month: endMonth ? `${endMonth}-01` : null,
           status,
+          category,
           description: description.trim() || null,
           note: note.trim() || null,
         },
       },
-      { onSuccess: () => setEditing(false) }
+      { onSuccess: () => setEditing(false) },
     );
   };
 
@@ -97,34 +122,21 @@ export default function ProjectDetail() {
     <Box sx={{ p: 3 }}>
       {/* Header */}
       <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 3 }}>
-        <Button
-          startIcon={<ArrowBackIcon />}
-          onClick={() => navigate('/projects')}
-          color="inherit"
-        >
+        <Button startIcon={<ArrowBackIcon />} onClick={() => navigate('/projects')} color="inherit">
           案件一覧
         </Button>
       </Stack>
 
       {/* Basic Info */}
       <Paper variant="outlined" sx={{ p: 3, mb: 3 }}>
-        <Stack
-          direction="row"
-          justifyContent="space-between"
-          alignItems="center"
-          sx={{ mb: 2 }}
-        >
+        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
           <Typography variant="h6" fontWeight="bold">
             基本情報
           </Typography>
           <Stack direction="row" spacing={1}>
             {editing ? (
               <>
-                <Button
-                  onClick={() => setEditing(false)}
-                  color="inherit"
-                  size="small"
-                >
+                <Button onClick={() => setEditing(false)} color="inherit" size="small">
                   キャンセル
                 </Button>
                 <Button
@@ -132,22 +144,14 @@ export default function ProjectDetail() {
                   startIcon={<SaveIcon />}
                   onClick={handleSave}
                   size="small"
-                  disabled={
-                    name.trim() === '' ||
-                    startMonth === '' ||
-                    updateProject.isPending
-                  }
+                  disabled={name.trim() === '' || startMonth === '' || updateProject.isPending}
                 >
                   保存
                 </Button>
               </>
             ) : (
               <>
-                <Button
-                  variant="outlined"
-                  onClick={startEditing}
-                  size="small"
-                >
+                <Button variant="outlined" onClick={startEditing} size="small">
                   編集
                 </Button>
                 <Button
@@ -176,13 +180,26 @@ export default function ProjectDetail() {
               fullWidth
             />
             <TextField
+              label="PJカテゴリー"
+              select
+              value={category}
+              onChange={(e) => setCategory(e.target.value as typeof category)}
+              fullWidth
+            >
+              {CATEGORY_OPTIONS.map((opt) => (
+                <MenuItem key={opt} value={opt}>
+                  {opt}
+                </MenuItem>
+              ))}
+            </TextField>
+            <TextField
               label="月額売上（万円）"
               type="number"
               value={monthlyRevenue}
               onChange={(e) => setMonthlyRevenue(e.target.value)}
               fullWidth
             />
-            <Stack direction="row" spacing={2}>
+            <Stack direction="row" spacing={2} alignItems="center">
               <MonthPicker
                 label="開始月"
                 value={startMonth}
@@ -193,17 +210,25 @@ export default function ProjectDetail() {
               <MonthPicker
                 label="終了月"
                 value={endMonth}
-                onChange={setEndMonth}
+                onChange={handleEndMonthChange}
                 fullWidth
+                minMonth={startMonth || undefined}
               />
+              {monthCount && (
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ whiteSpace: 'nowrap', minWidth: 60 }}
+                >
+                  {monthCount}ヶ月
+                </Typography>
+              )}
             </Stack>
             <TextField
               label="ステータス"
               select
               value={status}
-              onChange={(e) =>
-                setStatus(e.target.value as '確定' | '提案済' | '提案')
-              }
+              onChange={(e) => setStatus(e.target.value as typeof status)}
               fullWidth
             >
               {STATUS_OPTIONS.map((opt) => (
@@ -237,6 +262,12 @@ export default function ProjectDetail() {
             <Stack direction="row" spacing={4}>
               <Box>
                 <Typography variant="caption" color="text.secondary">
+                  カテゴリー
+                </Typography>
+                <Typography>{project.category}</Typography>
+              </Box>
+              <Box>
+                <Typography variant="caption" color="text.secondary">
                   月額売上
                 </Typography>
                 <Typography>
@@ -252,9 +283,8 @@ export default function ProjectDetail() {
                 <Typography>
                   {project.start_month.slice(0, 7).replace('-', '/')}
                   {' - '}
-                  {project.end_month
-                    ? project.end_month.slice(0, 7).replace('-', '/')
-                    : ''}
+                  {project.end_month ? project.end_month.slice(0, 7).replace('-', '/') : ''}{' '}
+                  {formatMonthCount(project.start_month, project.end_month)}
                 </Typography>
               </Box>
               <Box>
@@ -269,9 +299,7 @@ export default function ProjectDetail() {
                 <Typography variant="caption" color="text.secondary">
                   概要
                 </Typography>
-                <Typography whiteSpace="pre-wrap">
-                  {project.description}
-                </Typography>
+                <Typography whiteSpace="pre-wrap">{project.description}</Typography>
               </Box>
             )}
             {project.note && (
@@ -286,7 +314,7 @@ export default function ProjectDetail() {
         )}
       </Paper>
 
-      {/* Assignments */}
+      {/* Assignments（未定要員もここに表示される） */}
       <AssignmentTable
         projectId={project.id}
         startMonth={project.start_month}
@@ -294,10 +322,7 @@ export default function ProjectDetail() {
       />
 
       {/* Delete Confirmation Dialog */}
-      <Dialog
-        open={deleteDialogOpen}
-        onClose={() => setDeleteDialogOpen(false)}
-      >
+      <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
         <DialogTitle>案件を削除</DialogTitle>
         <DialogContent>
           <DialogContentText>

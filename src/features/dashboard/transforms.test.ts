@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { transformRevenueData, transformOverloadAlerts, transformUnassignedMembers } from './transforms';
+import {
+  transformRevenueData,
+  transformOverloadAlerts,
+  transformUnassignedMembers,
+} from './transforms';
 
 describe('transformRevenueData', () => {
   it('空データの場合は空配列を返す', () => {
@@ -8,9 +12,21 @@ describe('transformRevenueData', () => {
 
   it('ステータス別に売上を集計する', () => {
     const data = [
-      { month: '2026-03-01', project_id: 'p1', projects: { monthly_revenue: 100, status: '確定' as const } },
-      { month: '2026-03-01', project_id: 'p2', projects: { monthly_revenue: 50, status: '提案済' as const } },
-      { month: '2026-03-01', project_id: 'p3', projects: { monthly_revenue: 30, status: '提案' as const } },
+      {
+        month: '2026-03-01',
+        project_id: 'p1',
+        projects: { monthly_revenue: 100, status: '確定' as const },
+      },
+      {
+        month: '2026-03-01',
+        project_id: 'p2',
+        projects: { monthly_revenue: 50, status: '提案済' as const },
+      },
+      {
+        month: '2026-03-01',
+        project_id: 'p3',
+        projects: { monthly_revenue: 30, status: '提案予定' as const },
+      },
     ];
 
     const result = transformRevenueData(data);
@@ -25,8 +41,16 @@ describe('transformRevenueData', () => {
 
   it('同一 month+project_id の重複を排除する', () => {
     const data = [
-      { month: '2026-03-01', project_id: 'p1', projects: { monthly_revenue: 100, status: '確定' as const } },
-      { month: '2026-03-01', project_id: 'p1', projects: { monthly_revenue: 100, status: '確定' as const } },
+      {
+        month: '2026-03-01',
+        project_id: 'p1',
+        projects: { monthly_revenue: 100, status: '確定' as const },
+      },
+      {
+        month: '2026-03-01',
+        project_id: 'p1',
+        projects: { monthly_revenue: 100, status: '確定' as const },
+      },
     ];
 
     const result = transformRevenueData(data);
@@ -35,8 +59,16 @@ describe('transformRevenueData', () => {
 
   it('月ごとにソートされる', () => {
     const data = [
-      { month: '2026-05-01', project_id: 'p1', projects: { monthly_revenue: 50, status: '確定' as const } },
-      { month: '2026-03-01', project_id: 'p2', projects: { monthly_revenue: 100, status: '確定' as const } },
+      {
+        month: '2026-05-01',
+        project_id: 'p1',
+        projects: { monthly_revenue: 50, status: '確定' as const },
+      },
+      {
+        month: '2026-03-01',
+        project_id: 'p2',
+        projects: { monthly_revenue: 100, status: '確定' as const },
+      },
     ];
 
     const result = transformRevenueData(data);
@@ -45,9 +77,7 @@ describe('transformRevenueData', () => {
   });
 
   it('projects が null の場合は売上 0 として扱う', () => {
-    const data = [
-      { month: '2026-03-01', project_id: 'p1', projects: null },
-    ];
+    const data = [{ month: '2026-03-01', project_id: 'p1', projects: null }];
 
     const result = transformRevenueData(data);
     expect(result[0]).toEqual({
@@ -60,7 +90,11 @@ describe('transformRevenueData', () => {
 
   it('monthly_revenue が null の場合は 0 として扱う', () => {
     const data = [
-      { month: '2026-03-01', project_id: 'p1', projects: { monthly_revenue: null, status: '確定' as const } },
+      {
+        month: '2026-03-01',
+        project_id: 'p1',
+        projects: { monthly_revenue: null, status: '確定' as const },
+      },
     ];
 
     const result = transformRevenueData(data);
@@ -75,7 +109,13 @@ describe('transformOverloadAlerts', () => {
 
   it('100%以下のメンバーはフィルタされる', () => {
     const data = [
-      { member_id: 'm1', month: '2026-03-01', percentage: 80, members: { name: '田中' } },
+      {
+        member_id: 'm1',
+        month: '2026-03-01',
+        percentage: 80,
+        member_name: '田中',
+        is_unconfirmed: false,
+      },
     ];
 
     const result = transformOverloadAlerts(data);
@@ -84,7 +124,13 @@ describe('transformOverloadAlerts', () => {
 
   it('100%ちょうどのメンバーはフィルタされる', () => {
     const data = [
-      { member_id: 'm1', month: '2026-03-01', percentage: 100, members: { name: '田中' } },
+      {
+        member_id: 'm1',
+        month: '2026-03-01',
+        percentage: 100,
+        member_name: '田中',
+        is_unconfirmed: false,
+      },
     ];
 
     const result = transformOverloadAlerts(data);
@@ -93,8 +139,20 @@ describe('transformOverloadAlerts', () => {
 
   it('同一メンバー・月の複数アサインを合計して 100% 超を検出する', () => {
     const data = [
-      { member_id: 'm1', month: '2026-03-01', percentage: 60, members: { name: '田中' } },
-      { member_id: 'm1', month: '2026-03-01', percentage: 50, members: { name: '田中' } },
+      {
+        member_id: 'm1',
+        month: '2026-03-01',
+        percentage: 60,
+        member_name: '田中',
+        is_unconfirmed: false,
+      },
+      {
+        member_id: 'm1',
+        month: '2026-03-01',
+        percentage: 50,
+        member_name: '田中',
+        is_unconfirmed: false,
+      },
     ];
 
     const result = transformOverloadAlerts(data);
@@ -108,9 +166,27 @@ describe('transformOverloadAlerts', () => {
 
   it('月 → メンバー名でソートされる', () => {
     const data = [
-      { member_id: 'm2', month: '2026-04-01', percentage: 120, members: { name: '鈴木' } },
-      { member_id: 'm1', month: '2026-03-01', percentage: 120, members: { name: '田中' } },
-      { member_id: 'm1', month: '2026-04-01', percentage: 110, members: { name: '田中' } },
+      {
+        member_id: 'm2',
+        month: '2026-04-01',
+        percentage: 120,
+        member_name: '鈴木',
+        is_unconfirmed: false,
+      },
+      {
+        member_id: 'm1',
+        month: '2026-03-01',
+        percentage: 120,
+        member_name: '田中',
+        is_unconfirmed: false,
+      },
+      {
+        member_id: 'm1',
+        month: '2026-04-01',
+        percentage: 110,
+        member_name: '田中',
+        is_unconfirmed: false,
+      },
     ];
 
     const result = transformOverloadAlerts(data);
@@ -121,7 +197,13 @@ describe('transformOverloadAlerts', () => {
 
   it('members が null の場合は「不明」と表示する', () => {
     const data = [
-      { member_id: 'm1', month: '2026-03-01', percentage: 120, members: null },
+      {
+        member_id: 'm1',
+        month: '2026-03-01',
+        percentage: 120,
+        member_name: '不明',
+        is_unconfirmed: false,
+      },
     ];
 
     const result = transformOverloadAlerts(data);
@@ -130,11 +212,32 @@ describe('transformOverloadAlerts', () => {
 
   it('percentage が null の場合は 0 として扱う', () => {
     const data = [
-      { member_id: 'm1', month: '2026-03-01', percentage: null, members: { name: '田中' } },
+      {
+        member_id: 'm1',
+        month: '2026-03-01',
+        percentage: null,
+        member_name: '田中',
+        is_unconfirmed: false,
+      },
     ];
 
     const result = transformOverloadAlerts(data);
     expect(result).toHaveLength(0);
+  });
+
+  it('未確定PJメンバーは過負荷判定から除外する', () => {
+    const data = [
+      {
+        member_id: null,
+        month: '2026-03-01',
+        percentage: 150,
+        member_name: '未定要員(PM)',
+        is_unconfirmed: true,
+      },
+    ];
+
+    const result = transformOverloadAlerts(data);
+    expect(result).toEqual([]);
   });
 });
 

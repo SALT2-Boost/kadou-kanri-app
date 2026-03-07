@@ -54,12 +54,7 @@ export default function Layout() {
         }}
       >
         <Toolbar>
-          <IconButton
-            color="inherit"
-            onClick={() => setOpen(!open)}
-            edge="start"
-            sx={{ mr: 2 }}
-          >
+          <IconButton color="inherit" onClick={() => setOpen(!open)} edge="start" sx={{ mr: 2 }}>
             {open ? <ChevronLeftIcon /> : <MenuIcon />}
           </IconButton>
           <Typography variant="h6" noWrap sx={{ flexGrow: 1 }}>
@@ -123,7 +118,7 @@ export default function Layout() {
         sx={{
           flexGrow: 1,
           transition: 'margin 0.3s',
-          ml: open ? 0 : `-${DRAWER_WIDTH}px`,
+          ml: 0,
         }}
       >
         <Toolbar />

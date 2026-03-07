@@ -42,6 +42,7 @@ const TABLE_OPTIONS: TableOption[] = [
 const MEMBER_COLUMNS: CsvColumn[] = [
   { key: 'id', label: 'ID' },
   { key: 'name', label: '名前' },
+  { key: 'role', label: 'role' },
   { key: 'category', label: '区分' },
   { key: 'note', label: '備考' },
   { key: 'is_active', label: 'アクティブ' },
@@ -62,6 +63,8 @@ const PROJECT_COLUMNS: CsvColumn[] = [
 
 const ASSIGNMENT_COLUMNS: CsvColumn[] = [
   { key: 'id', label: 'ID' },
+  { key: 'project_member_name', label: 'PJメンバー名' },
+  { key: 'role', label: 'role' },
   { key: 'member_name', label: 'メンバー名' },
   { key: 'project_name', label: '案件名' },
   { key: 'month', label: '月' },
@@ -82,12 +85,12 @@ function formatDate(): string {
   return `${y}${m}${d}`;
 }
 
-function flattenAssignments(
-  data: ExportAssignment[],
-): Record<string, unknown>[] {
+function flattenAssignments(data: ExportAssignment[]): Record<string, unknown>[] {
   return data.map((row) => ({
     id: row.id,
-    member_name: row.members?.name ?? '',
+    project_member_name: row.project_members?.name ?? '',
+    role: row.project_members?.role ?? '',
+    member_name: row.member_id ? (row.project_members?.name ?? '') : '',
     project_name: row.projects?.name ?? '',
     month: row.month,
     percentage: row.percentage,
@@ -146,7 +149,11 @@ export default function ExportPage() {
         if (format === 'csv') {
           downloadFile(jsonToCsv(data, MEMBER_COLUMNS), `members_${dateStr}.csv`, 'csv');
         } else {
-          downloadFile(JSON.stringify(membersQuery.data, null, 2), `members_${dateStr}.json`, 'json');
+          downloadFile(
+            JSON.stringify(membersQuery.data, null, 2),
+            `members_${dateStr}.json`,
+            'json',
+          );
         }
       }
 
@@ -155,7 +162,11 @@ export default function ExportPage() {
         if (format === 'csv') {
           downloadFile(jsonToCsv(data, PROJECT_COLUMNS), `projects_${dateStr}.csv`, 'csv');
         } else {
-          downloadFile(JSON.stringify(projectsQuery.data, null, 2), `projects_${dateStr}.json`, 'json');
+          downloadFile(
+            JSON.stringify(projectsQuery.data, null, 2),
+            `projects_${dateStr}.json`,
+            'json',
+          );
         }
       }
 
@@ -164,7 +175,11 @@ export default function ExportPage() {
         if (format === 'csv') {
           downloadFile(jsonToCsv(flat, ASSIGNMENT_COLUMNS), `assignments_${dateStr}.csv`, 'csv');
         } else {
-          downloadFile(JSON.stringify(assignmentsQuery.data, null, 2), `assignments_${dateStr}.json`, 'json');
+          downloadFile(
+            JSON.stringify(assignmentsQuery.data, null, 2),
+            `assignments_${dateStr}.json`,
+            'json',
+          );
         }
       }
 
@@ -179,7 +194,14 @@ export default function ExportPage() {
     } finally {
       setDownloading(false);
     }
-  }, [selected, format, membersQuery.data, projectsQuery.data, assignmentsQuery.data, skillsQuery.data]);
+  }, [
+    selected,
+    format,
+    membersQuery.data,
+    projectsQuery.data,
+    assignmentsQuery.data,
+    skillsQuery.data,
+  ]);
 
   const canDownload =
     selected.size > 0 &&
@@ -234,12 +256,7 @@ export default function ExportPage() {
             <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 500 }}>
               フォーマット
             </Typography>
-            <ToggleButtonGroup
-              value={format}
-              exclusive
-              onChange={handleFormatChange}
-              size="small"
-            >
+            <ToggleButtonGroup value={format} exclusive onChange={handleFormatChange} size="small">
               <ToggleButton value="csv">CSV</ToggleButton>
               <ToggleButton value="json">JSON</ToggleButton>
             </ToggleButtonGroup>

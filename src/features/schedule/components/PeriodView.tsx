@@ -7,6 +7,8 @@ import LoadingOverlay from '@/shared/ui/LoadingOverlay';
 import ScheduleFilter from './ScheduleFilter';
 import { MEMBER_CATEGORIES } from '@/shared/constants/categories';
 import ScheduleTable from './ScheduleTable';
+import { useAllSkills } from '../hooks';
+import { filterScheduleRows } from '../transforms';
 
 function getCurrentMonth(): string {
   const now = new Date();
@@ -31,33 +33,32 @@ export default function PeriodView() {
   const [categories, setCategories] = useState<string[]>([...MEMBER_CATEGORIES]);
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [searchText, setSearchText] = useState('');
+  const [onlyUnconfirmed, setOnlyUnconfirmed] = useState(false);
   const debouncedSearch = useDebounce(searchText, 300);
 
   const currentMonth = useMemo(() => getCurrentMonth(), []);
   const monthCount = rangeType === '6' ? 6 : 12;
   const months = useMemo(
     () => generateMonthRange(currentMonth, monthCount),
-    [currentMonth, monthCount]
+    [currentMonth, monthCount],
   );
 
   const startMonth = months[0];
   const endMonth = months[months.length - 1];
 
   const { data, isLoading } = usePeriodView(startMonth, endMonth);
+  const { data: skills = [] } = useAllSkills();
   const rows = data?.rows;
-  const skills = data?.skills ?? [];
 
   const filteredRows = useMemo(() => {
     if (!rows) return [];
-    const categorySet = new Set(categories);
-    const skillSet = new Set(selectedSkills);
-    return rows.filter((row) => {
-      if (!categorySet.has(row.category)) return false;
-      if (debouncedSearch && !row.memberName.includes(debouncedSearch)) return false;
-      if (skillSet.size > 0 && !row.skills.some((s) => skillSet.has(s))) return false;
-      return true;
+    return filterScheduleRows(rows, {
+      categories,
+      selectedSkills,
+      searchText: debouncedSearch,
+      onlyUnconfirmed,
     });
-  }, [rows, categories, debouncedSearch, selectedSkills]);
+  }, [rows, categories, debouncedSearch, selectedSkills, onlyUnconfirmed]);
 
   const handleRangeChange = (event: SelectChangeEvent) => {
     setRangeType(event.target.value as '6' | '12');
@@ -84,7 +85,9 @@ export default function PeriodView() {
         onSkillsChange={setSelectedSkills}
         searchText={searchText}
         onSearchTextChange={setSearchText}
-        skills={skills.map((name) => ({ id: name, name }))}
+        onlyUnconfirmed={onlyUnconfirmed}
+        onOnlyUnconfirmedChange={setOnlyUnconfirmed}
+        skills={skills}
       />
 
       <ScheduleTable rows={filteredRows} months={months} />

@@ -2,13 +2,16 @@
 -- 初期データ投入（稼働管理表_2026 より）
 -- ========================================
 
-BEGIN;
-
 -- 既存データをクリア
 DELETE FROM assignments;
+DELETE FROM project_member_skills;
+DELETE FROM project_members;
 DELETE FROM member_skills;
 DELETE FROM members;
 DELETE FROM projects;
+
+DROP TABLE IF EXISTS _seed_assignment_rows;
+DROP TABLE IF EXISTS _seed_placeholder_members;
 
 -- ========================================
 -- メンバー
@@ -40,11 +43,23 @@ INSERT INTO members (id, name, category, note, is_active) VALUES
   ('a0000001-0000-0000-0000-000000000021', '久保木(DS)', 'インターン', NULL, true),
   ('a0000001-0000-0000-0000-000000000022', '山本(DS)', 'インターン', NULL, true),
   ('a0000001-0000-0000-0000-000000000023', '三浦', 'インターン', NULL, true),
-  ('a0000001-0000-0000-0000-000000000024', '會澤(SWE)', 'インターン', NULL, true),
-  -- 未定枠
-  ('a0000001-0000-0000-0000-000000000025', 'SWE要員', '未定枠', '住商鉄鋼向け', true),
-  ('a0000001-0000-0000-0000-000000000026', 'AIE要員', '未定枠', '住商鉄鋼/三菱地所テナント/BxS向け', true),
-  ('a0000001-0000-0000-0000-000000000027', 'インターン要員(顧問バンク)', '未定枠', '顧問バンク向け', true);
+  ('a0000001-0000-0000-0000-000000000024', '會澤(SWE)', 'インターン', NULL, true);
+
+UPDATE members
+SET role = 'SWE'
+WHERE id IN (
+  'a0000001-0000-0000-0000-000000000013',
+  'a0000001-0000-0000-0000-000000000014',
+  'a0000001-0000-0000-0000-000000000015',
+  'a0000001-0000-0000-0000-000000000024'
+);
+
+UPDATE members
+SET role = 'DS'
+WHERE id IN (
+  'a0000001-0000-0000-0000-000000000021',
+  'a0000001-0000-0000-0000-000000000022'
+);
 
 -- ========================================
 -- メンバー × スキル
@@ -68,13 +83,7 @@ INSERT INTO member_skills (member_id, skill_id)
   SELECT 'a0000001-0000-0000-0000-000000000022'::uuid, id FROM skills WHERE name = 'DS'
   UNION ALL
   -- 會澤(SWE): SWE
-  SELECT 'a0000001-0000-0000-0000-000000000024'::uuid, id FROM skills WHERE name = 'SWE'
-  UNION ALL
-  -- SWE要員: SWE
-  SELECT 'a0000001-0000-0000-0000-000000000025'::uuid, id FROM skills WHERE name = 'SWE'
-  UNION ALL
-  -- AIE要員: AIE
-  SELECT 'a0000001-0000-0000-0000-000000000026'::uuid, id FROM skills WHERE name = 'AIE';
+  SELECT 'a0000001-0000-0000-0000-000000000024'::uuid, id FROM skills WHERE name = 'SWE';
 
 -- ========================================
 -- 案件
@@ -85,27 +94,34 @@ INSERT INTO projects (id, name, status, monthly_revenue, start_month, end_month,
   ('b0000001-0000-0000-0000-000000000003', '住商IT研修',         '確定',    50, '2026-03-01', '2026-04-01', NULL),
   ('b0000001-0000-0000-0000-000000000004', '三菱地所BxS',        '確定',   300, '2026-04-01', NULL, '3/16週に確定'),
   ('b0000001-0000-0000-0000-000000000005', 'ヤンマー',           '確定',   800, '2026-05-01', NULL, NULL),
-  ('b0000001-0000-0000-0000-000000000006', 'サッポロ',           '提案',     0, '2026-03-01', NULL, NULL),
+  ('b0000001-0000-0000-0000-000000000006', 'サッポロ',           '提案予定', 0, '2026-03-01', NULL, NULL),
   ('b0000001-0000-0000-0000-000000000007', '住商鉄鋼 鋼管SBU',  '確定',   600, '2026-04-01', NULL, '3/16週に確定'),
-  ('b0000001-0000-0000-0000-000000000008', 'Firstシステム',      '提案',     0, '2026-03-01', NULL, NULL),
-  ('b0000001-0000-0000-0000-000000000009', '三菱地所ホテル',     '提案',     0, '2026-06-01', NULL, NULL),
+  ('b0000001-0000-0000-0000-000000000008', 'Firstシステム',      '提案予定', 0, '2026-03-01', NULL, NULL),
+  ('b0000001-0000-0000-0000-000000000009', '三菱地所ホテル',     '提案予定', 0, '2026-06-01', NULL, NULL),
   ('b0000001-0000-0000-0000-000000000010', '三菱地所テナント',   '確定',   500, '2026-05-01', '2026-07-01', NULL),
   ('b0000001-0000-0000-0000-000000000011', 'ウィザス（〜3末）',  '確定',   450, '2026-03-01', '2026-03-01', NULL),
-  ('b0000001-0000-0000-0000-000000000012', 'ウィザス（4月〜）',  '提案',     0, '2026-04-01', NULL, NULL),
+  ('b0000001-0000-0000-0000-000000000012', 'ウィザス（4月〜）',  '提案予定', 0, '2026-04-01', NULL, NULL),
   ('b0000001-0000-0000-0000-000000000013', 'Firstサステナ',      '確定',   500, '2026-04-01', NULL, NULL),
   ('b0000001-0000-0000-0000-000000000014', '顧問バンク',         '確定',     0, '2026-03-01', NULL, NULL),
-  ('b0000001-0000-0000-0000-000000000015', 'IMAGICA',            '提案',   400, '2026-05-01', '2026-08-01', '任天堂がクライアント。ポケモンをデータ食わせられるか次第');
+  ('b0000001-0000-0000-0000-000000000015', 'IMAGICA',            '提案予定', 400, '2026-05-01', '2026-08-01', '任天堂がクライアント。ポケモンをデータ食わせられるか次第');
 
 -- ========================================
 -- アサイン
 -- ========================================
-INSERT INTO assignments (member_id, project_id, month, percentage, note) VALUES
+WITH seed_placeholder_members (legacy_member_id, name, role, note, skill_name) AS (
+  VALUES
+  ('a0000001-0000-0000-0000-000000000025'::uuid, '未定要員(SWE)', 'SWE', '住商鉄鋼向け', 'SWE'),
+  ('a0000001-0000-0000-0000-000000000026', '未定要員(AIE)', 'AIE', '住商鉄鋼/三菱地所テナント/BxS向け', 'AIE'),
+  ('a0000001-0000-0000-0000-000000000027', '未定要員(インターン)', 'インターン', '顧問バンク向け', NULL)
+),
+seed_assignment_rows (legacy_member_id, project_id, month, percentage, note) AS (
+  VALUES
 
   -- ==========================================
   -- トライ（3月〜5月）1,000万/月
   -- ==========================================
   -- 鬼澤 50%
-  ('a0000001-0000-0000-0000-000000000001', 'b0000001-0000-0000-0000-000000000001', '2026-03-01', 50, NULL),
+  ('a0000001-0000-0000-0000-000000000001'::uuid, 'b0000001-0000-0000-0000-000000000001'::uuid, '2026-03-01'::date, 50, NULL),
   ('a0000001-0000-0000-0000-000000000001', 'b0000001-0000-0000-0000-000000000001', '2026-04-01', 50, NULL),
   ('a0000001-0000-0000-0000-000000000001', 'b0000001-0000-0000-0000-000000000001', '2026-05-01', 50, NULL),
   -- 坂東 30%
@@ -438,8 +454,85 @@ INSERT INTO assignments (member_id, project_id, month, percentage, note) VALUES
   ('a0000001-0000-0000-0000-000000000020', 'b0000001-0000-0000-0000-000000000015', '2026-07-01', 100, NULL),
   ('a0000001-0000-0000-0000-000000000020', 'b0000001-0000-0000-0000-000000000015', '2026-08-01', 100, NULL)
 
-ON CONFLICT (member_id, project_id, month) DO UPDATE SET
+),
+inserted_actual_project_members AS (
+  INSERT INTO project_members (project_id, member_id, name, role, note)
+  SELECT DISTINCT
+    sar.project_id::uuid,
+    m.id::uuid,
+    m.name,
+    m.role,
+    NULL
+  FROM seed_assignment_rows sar
+  JOIN members m ON m.id = sar.legacy_member_id
+  RETURNING id, project_id, member_id, name, role
+),
+inserted_placeholder_project_members AS (
+  INSERT INTO project_members (project_id, member_id, name, role, note)
+  SELECT DISTINCT
+    sar.project_id::uuid,
+    NULL::uuid,
+    spm.name,
+    spm.role,
+    spm.note
+  FROM seed_assignment_rows sar
+  JOIN seed_placeholder_members spm
+    ON spm.legacy_member_id = sar.legacy_member_id
+  RETURNING id, project_id, member_id, name, role
+),
+all_project_members AS (
+  SELECT * FROM inserted_actual_project_members
+  UNION ALL
+  SELECT * FROM inserted_placeholder_project_members
+),
+inserted_actual_project_member_skills AS (
+  INSERT INTO project_member_skills (project_member_id, skill_id)
+  SELECT
+    pm.id,
+    ms.skill_id
+  FROM all_project_members pm
+  JOIN member_skills ms ON ms.member_id = pm.member_id
+  ON CONFLICT DO NOTHING
+  RETURNING project_member_id
+),
+inserted_placeholder_project_member_skills AS (
+  INSERT INTO project_member_skills (project_member_id, skill_id)
+  SELECT
+    pm.id,
+    s.id
+  FROM all_project_members pm
+  JOIN seed_placeholder_members spm
+    ON spm.name = pm.name
+    AND spm.role = pm.role
+  JOIN skills s
+    ON s.name = spm.skill_name
+  WHERE pm.member_id IS NULL
+    AND spm.skill_name IS NOT NULL
+  ON CONFLICT DO NOTHING
+  RETURNING project_member_id
+)
+INSERT INTO assignments (project_member_id, month, percentage, note)
+SELECT
+  pm.id,
+  sar.month,
+  sar.percentage,
+  sar.note
+FROM seed_assignment_rows sar
+LEFT JOIN members m
+  ON m.id = sar.legacy_member_id
+LEFT JOIN seed_placeholder_members spm
+  ON spm.legacy_member_id = sar.legacy_member_id
+JOIN all_project_members pm
+  ON pm.project_id = sar.project_id
+  AND (
+    (m.id IS NOT NULL AND pm.member_id = m.id)
+    OR (
+      m.id IS NULL
+      AND pm.member_id IS NULL
+      AND pm.name = spm.name
+      AND pm.role = spm.role
+    )
+  )
+ON CONFLICT (project_member_id, month) DO UPDATE SET
   percentage = EXCLUDED.percentage,
   note = EXCLUDED.note;
-
-COMMIT;

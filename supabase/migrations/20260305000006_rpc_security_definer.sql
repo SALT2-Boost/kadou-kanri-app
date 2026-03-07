@@ -27,7 +27,7 @@ RETURNS TABLE (
   ORDER BY m.category, m.name;
 $$;
 
-CREATE OR REPLACE FUNCTION get_assignments_in_range(p_start date, p_end date)
+CREATE OR REPLACE FUNCTION get_assignments_in_range(start_month date, end_month date)
 RETURNS TABLE (
   member_id    uuid,
   project_id   uuid,
@@ -43,7 +43,7 @@ RETURNS TABLE (
     p.name AS project_name
   FROM assignments a
   JOIN projects p ON p.id = a.project_id
-  WHERE a.month >= p_start AND a.month <= p_end;
+  WHERE a.month >= start_month AND a.month <= end_month;
 $$;
 
 CREATE OR REPLACE FUNCTION get_assignments_in_month(target_month date)

@@ -1,3 +1,12 @@
+type ProjectStaffingTarget = {
+  role: string;
+  percentage: number;
+};
+
+type ProjectCategory = '戦コン' | 'AIエージェント' | 'システムリプレイス' | 'その他';
+type ProjectStatus = '確定' | '提案済' | '提案予定';
+type MemberCategory = '社員' | '入社予定' | 'インターン' | '未定枠';
+
 export interface Database {
   public: {
     Tables: {
@@ -20,29 +29,49 @@ export interface Database {
         Row: {
           id: string;
           name: string;
-          category: '社員' | '入社予定' | 'インターン' | '未定枠';
+          role: string;
+          category: MemberCategory;
           note: string | null;
+          join_date: string | null;
           is_active: boolean;
+          is_placeholder: boolean;
+          placeholder_project_id: string | null;
           created_at: string;
           updated_at: string;
         };
         Insert: {
           id?: string;
           name: string;
-          category: '社員' | '入社予定' | 'インターン' | '未定枠';
+          role?: string;
+          category: MemberCategory;
           note?: string | null;
+          join_date?: string | null;
           is_active?: boolean;
+          is_placeholder?: boolean;
+          placeholder_project_id?: string | null;
           created_at?: string;
           updated_at?: string;
         };
         Update: {
           id?: string;
           name?: string;
-          category?: '社員' | '入社予定' | 'インターン' | '未定枠';
+          role?: string;
+          category?: MemberCategory;
           note?: string | null;
+          join_date?: string | null;
           is_active?: boolean;
+          is_placeholder?: boolean;
+          placeholder_project_id?: string | null;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: 'members_placeholder_project_id_fkey';
+            columns: ['placeholder_project_id'];
+            isOneToOne: false;
+            referencedRelation: 'projects';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       member_skills: {
         Row: {
@@ -84,7 +113,9 @@ export interface Database {
           monthly_revenue: number | null;
           start_month: string;
           end_month: string | null;
-          status: '確定' | '提案済' | '提案';
+          status: ProjectStatus;
+          category: ProjectCategory;
+          staffing_targets: ProjectStaffingTarget[];
           description: string | null;
           note: string | null;
           created_at: string;
@@ -96,7 +127,9 @@ export interface Database {
           monthly_revenue?: number | null;
           start_month: string;
           end_month?: string | null;
-          status?: '確定' | '提案済' | '提案';
+          status?: ProjectStatus;
+          category?: ProjectCategory;
+          staffing_targets?: ProjectStaffingTarget[];
           description?: string | null;
           note?: string | null;
         };
@@ -106,16 +139,98 @@ export interface Database {
           monthly_revenue?: number | null;
           start_month?: string;
           end_month?: string | null;
-          status?: '確定' | '提案済' | '提案';
+          status?: ProjectStatus;
+          category?: ProjectCategory;
+          staffing_targets?: ProjectStaffingTarget[];
           description?: string | null;
           note?: string | null;
         };
         Relationships: [];
       };
+      project_members: {
+        Row: {
+          id: string;
+          project_id: string;
+          member_id: string | null;
+          name: string;
+          role: string;
+          note: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          project_id: string;
+          member_id?: string | null;
+          name: string;
+          role?: string;
+          note?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          project_id?: string;
+          member_id?: string | null;
+          name?: string;
+          role?: string;
+          note?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'project_members_member_id_fkey';
+            columns: ['member_id'];
+            isOneToOne: false;
+            referencedRelation: 'members';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'project_members_project_id_fkey';
+            columns: ['project_id'];
+            isOneToOne: false;
+            referencedRelation: 'projects';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      project_member_skills: {
+        Row: {
+          id: string;
+          project_member_id: string;
+          skill_id: string;
+        };
+        Insert: {
+          id?: string;
+          project_member_id: string;
+          skill_id: string;
+        };
+        Update: {
+          id?: string;
+          project_member_id?: string;
+          skill_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'project_member_skills_project_member_id_fkey';
+            columns: ['project_member_id'];
+            isOneToOne: false;
+            referencedRelation: 'project_members';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'project_member_skills_skill_id_fkey';
+            columns: ['skill_id'];
+            isOneToOne: false;
+            referencedRelation: 'skills';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       assignments: {
         Row: {
           id: string;
-          member_id: string;
+          project_member_id: string;
+          member_id: string | null;
           project_id: string;
           month: string;
           percentage: number | null;
@@ -125,15 +240,17 @@ export interface Database {
         };
         Insert: {
           id?: string;
-          member_id: string;
-          project_id: string;
+          project_member_id: string;
+          member_id?: string | null;
+          project_id?: string;
           month: string;
           percentage?: number | null;
           note?: string | null;
         };
         Update: {
           id?: string;
-          member_id?: string;
+          project_member_id?: string;
+          member_id?: string | null;
           project_id?: string;
           month?: string;
           percentage?: number | null;
@@ -152,6 +269,13 @@ export interface Database {
             columns: ['project_id'];
             isOneToOne: false;
             referencedRelation: 'projects';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'assignments_project_member_id_fkey';
+            columns: ['project_member_id'];
+            isOneToOne: false;
+            referencedRelation: 'project_members';
             referencedColumns: ['id'];
           },
         ];
@@ -176,6 +300,14 @@ export interface Database {
           skills: string[];
         };
       };
+      get_period_totals: {
+        Args: { p_start: string; p_end: string };
+        Returns: Array<{
+          member_id: string;
+          month: string;
+          total: number;
+        }>;
+      };
       get_members_with_skills: {
         Args: Record<string, never>;
         Returns: Array<{
@@ -193,6 +325,47 @@ export interface Database {
           percentage: number | null;
           project_name: string;
         }>;
+      };
+      upsert_project_member_assignments_for_range: {
+        Args: {
+          p_project_member_id: string;
+          p_start: string;
+          p_end: string | null;
+          p_percentage?: number | null;
+          p_note?: string | null;
+        };
+        Returns: undefined;
+      };
+      create_project_member_with_assignments: {
+        Args: {
+          p_project_id: string;
+          p_member_id: string | null;
+          p_name: string;
+          p_role: string;
+          p_note: string | null;
+          p_skill_ids: string[] | null;
+          p_start: string;
+          p_end: string | null;
+          p_percentage?: number | null;
+        };
+        Returns: string;
+      };
+      update_project_member_profile: {
+        Args: {
+          p_project_member_id: string;
+          p_name: string | null;
+          p_role: string | null;
+          p_note: string | null;
+          p_skill_ids: string[] | null;
+        };
+        Returns: undefined;
+      };
+      confirm_project_member_assignment: {
+        Args: {
+          p_project_member_id: string;
+          p_member_id: string;
+        };
+        Returns: undefined;
       };
     };
     Enums: Record<string, never>;

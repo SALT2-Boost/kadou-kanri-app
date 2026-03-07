@@ -1,9 +1,15 @@
-export interface ScheduleRow {
-  memberId: string;
+export interface ScheduleBaseRow {
+  rowId: string;
+  memberId: string | null;
   memberName: string;
   category: '社員' | '入社予定' | 'インターン' | '未定枠';
+  role: string;
+  isUnconfirmed: boolean;
   skills: string[];
-  months: Record<string, ScheduleCell>; // key: '2026-03-01'
+}
+
+export interface ScheduleRow extends ScheduleBaseRow {
+  months: Record<string, ScheduleCell>;
 }
 
 export interface ScheduleCell {
@@ -15,12 +21,8 @@ export interface ScheduleCell {
   }>;
 }
 
-export interface MonthlyViewRow {
-  memberId: string;
-  memberName: string;
-  category: '社員' | '入社予定' | 'インターン' | '未定枠';
-  skills: string[];
-  projects: Record<string, number>; // key: projectId, value: percentage
+export interface MonthlyViewRow extends ScheduleBaseRow {
+  projects: Record<string, number>;
   totalPercentage: number;
 }
 

@@ -1,70 +1,111 @@
 import { supabase } from '@/shared/lib/supabase';
 
-// === 期間ビュー用の型 ===
-
-export interface PeriodMember {
-  id: string;
-  name: string;
-  category: '社員' | '入社予定' | 'インターン' | '未定枠';
-  skills: string[]; // スキル名の配列（skill_id不要）
-}
-
-export interface PeriodCell {
-  member_id: string;
-  month: string;
-  total: number;
-}
-
-interface PeriodViewResponse {
-  members: PeriodMember[];
-  cells: PeriodCell[];
-  skills: string[];
-}
-
-// === 月別ビュー用の型（従来通り案件詳細が必要） ===
-
 export interface MemberWithSkills {
   id: string;
   name: string;
   category: '社員' | '入社予定' | 'インターン' | '未定枠';
+  role: string;
   skills: Array<{ skill_id: string; name: string }>;
 }
 
-export interface MonthlyAssignmentWithProject {
-  member_id: string;
+export interface ProjectMemberWithAssignments {
+  id: string;
   project_id: string;
-  percentage: number | null;
-  project_name: string;
+  member_id: string | null;
+  name: string;
+  role: string;
+  projects: {
+    id: string;
+    name: string;
+  };
+  members: {
+    id: string;
+    name: string;
+    category: '社員' | '入社予定' | 'インターン' | '未定枠';
+  } | null;
+  project_member_skills: Array<{
+    skill_id: string;
+    skills: {
+      id: string;
+      name: string;
+    };
+  }>;
+  assignments: Array<{
+    id: string;
+    project_member_id: string;
+    month: string;
+    percentage: number | null;
+    note: string | null;
+    created_at: string;
+    updated_at: string;
+  }>;
 }
 
-// 期間ビュー用: 1回のRPCで集約済みデータを取得
-export async function fetchPeriodView(startMonth: string, endMonth: string): Promise<PeriodViewResponse> {
-  const { data, error } = await supabase.rpc('get_period_view', {
-    p_start: startMonth,
-    p_end: endMonth,
-  });
+async function fetchActiveMembers(): Promise<MemberWithSkills[]> {
+  const { data, error } = await supabase
+    .from('members')
+    .select('id, name, category, role, member_skills(skill_id, skills(id, name))')
+    .eq('is_active', true)
+    .eq('is_placeholder', false)
+    .order('name');
+
   if (error) throw error;
-  const result = data as unknown as PeriodViewResponse;
-  return {
-    members: result.members ?? [],
-    cells: result.cells ?? [],
-    skills: result.skills ?? [],
-  };
+
+  return (
+    (data ?? []) as Array<{
+      id: string;
+      name: string;
+      category: '社員' | '入社予定' | 'インターン' | '未定枠';
+      role: string;
+      member_skills: Array<{
+        skill_id: string;
+        skills: { id: string; name: string };
+      }>;
+    }>
+  ).map((member) => ({
+    id: member.id,
+    name: member.name,
+    category: member.category,
+    role: member.role,
+    skills: member.member_skills.map((link) => ({
+      skill_id: link.skill_id,
+      name: link.skills.name,
+    })),
+  }));
 }
 
-// 月別ビュー用: RPC 2本を並列実行（案件ごとの内訳が必要なため）
-export async function fetchMonthlyView(month: string) {
-  const [membersResult, assignmentsResult] = await Promise.all([
-    supabase.rpc('get_members_with_skills'),
-    supabase.rpc('get_assignments_in_month', {
-      p_month: month,
-    }),
-  ]);
-  if (membersResult.error) throw membersResult.error;
-  if (assignmentsResult.error) throw assignmentsResult.error;
+async function fetchProjectMembersWithAssignments(
+  startMonth: string,
+  endMonth: string,
+): Promise<ProjectMemberWithAssignments[]> {
+  const { data, error } = await supabase
+    .from('project_members')
+    .select(
+      'id, project_id, member_id, name, role, projects(id, name), members(id, name, category), project_member_skills(skill_id, skills(id, name)), assignments!inner(id, project_member_id, month, percentage, note, created_at, updated_at)',
+    )
+    .gte('assignments.month', startMonth)
+    .lte('assignments.month', endMonth)
+    .order('name')
+    .order('month', { foreignTable: 'assignments', ascending: true });
 
-  return {
-    members: membersResult.data as unknown as MemberWithSkills[],
-    assignments: assignmentsResult.data as unknown as MonthlyAssignmentWithProject[],
-  };
+  if (error) throw error;
+  return data as unknown as ProjectMemberWithAssignments[];
+}
+
+export async function fetchPeriodView(startMonth: string, endMonth: string) {
+  const [members, projectMembers] = await Promise.all([
+    fetchActiveMembers(),
+    fetchProjectMembersWithAssignments(startMonth, endMonth),
+  ]);
+
+  return { members, projectMembers };
+}
+
+export async function fetchMonthlyView(month: string) {
+  const [members, projectMembers] = await Promise.all([
+    fetchActiveMembers(),
+    fetchProjectMembersWithAssignments(month, month),
+  ]);
+
+  return { members, projectMembers };
 }

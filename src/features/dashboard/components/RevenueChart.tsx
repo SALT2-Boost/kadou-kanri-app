@@ -24,7 +24,7 @@ export default function RevenueChart() {
     month: formatMonth(row.month),
     確定: row.confirmed,
     提案済: row.proposed,
-    提案: row.draft,
+    提案予定: row.draft,
   }));
 
   return (
@@ -50,7 +50,7 @@ export default function RevenueChart() {
             <Legend />
             <Bar dataKey="確定" stackId="revenue" fill="#4caf50" />
             <Bar dataKey="提案済" stackId="revenue" fill="#ff9800" />
-            <Bar dataKey="提案" stackId="revenue" fill="#9e9e9e" />
+            <Bar dataKey="提案予定" stackId="revenue" fill="#9e9e9e" />
           </BarChart>
         </ResponsiveContainer>
       )}

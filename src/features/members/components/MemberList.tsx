@@ -35,7 +35,7 @@ export default function MemberList() {
   const [searchText, setSearchText] = useState('');
   const debouncedSearch = useDebounce(searchText, 300);
   const [selectedCategories, setSelectedCategories] = useState<Set<string>>(
-    new Set(MEMBER_CATEGORIES)
+    new Set(MEMBER_CATEGORIES),
   );
   const [selectedSkillIds, setSelectedSkillIds] = useState<Set<string>>(new Set());
 
@@ -88,11 +88,7 @@ export default function MemberList() {
       <PageHeader
         title="メンバー一覧"
         action={
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => setFormOpen(true)}
-          >
+          <Button variant="contained" startIcon={<AddIcon />} onClick={() => setFormOpen(true)}>
             新規メンバー
           </Button>
         }
@@ -152,6 +148,7 @@ export default function MemberList() {
           <TableHead>
             <TableRow>
               <TableCell>名前</TableCell>
+              <TableCell>role</TableCell>
               <TableCell>区分</TableCell>
               <TableCell>スキル</TableCell>
               <TableCell>備考</TableCell>
@@ -160,10 +157,8 @@ export default function MemberList() {
           <TableBody>
             {filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} align="center" sx={{ py: 4 }}>
-                  <Typography color="text.secondary">
-                    メンバーが見つかりません
-                  </Typography>
+                <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
+                  <Typography color="text.secondary">メンバーが見つかりません</Typography>
                 </TableCell>
               </TableRow>
             ) : (
@@ -175,6 +170,7 @@ export default function MemberList() {
                   sx={{ cursor: 'pointer' }}
                 >
                   <TableCell>{member.name}</TableCell>
+                  <TableCell>{member.role}</TableCell>
                   <TableCell>{member.category}</TableCell>
                   <TableCell>
                     <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>

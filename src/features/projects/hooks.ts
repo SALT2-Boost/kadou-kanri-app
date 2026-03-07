@@ -6,6 +6,8 @@ import {
   createProject,
   updateProject,
   deleteProject,
+  createProjectPlaceholders,
+  type ProjectPlaceholderInput,
 } from './api';
 import type { Project } from './types';
 
@@ -45,7 +47,9 @@ export function useCreateProject() {
           monthly_revenue: newProject.monthly_revenue ?? null,
           start_month: newProject.start_month,
           end_month: newProject.end_month ?? null,
-          status: newProject.status ?? '提案',
+          status: newProject.status ?? '提案予定',
+          category: newProject.category ?? 'その他',
+          staffing_targets: newProject.staffing_targets ?? [],
           description: newProject.description ?? null,
           note: newProject.note ?? null,
           created_at: new Date().toISOString(),
@@ -63,6 +67,10 @@ export function useCreateProject() {
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: projectKeys.all });
+      queryClient.invalidateQueries({ queryKey: ['assignments'] });
+      queryClient.invalidateQueries({ queryKey: ['schedule'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['export'] });
     },
   });
 }
@@ -71,32 +79,23 @@ export function useUpdateProject() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
-      id,
-      data,
-    }: {
-      id: string;
-      data: UpdateTables<'projects'>;
-    }) => updateProject(id, data),
+    mutationFn: ({ id, data }: { id: string; data: UpdateTables<'projects'> }) =>
+      updateProject(id, data),
     onMutate: async ({ id, data }) => {
       await queryClient.cancelQueries({ queryKey: projectKeys.all });
       await queryClient.cancelQueries({ queryKey: projectKeys.detail(id) });
 
-      const previousList = queryClient.getQueryData<Project[]>(
-        projectKeys.all
-      );
-      const previousDetail = queryClient.getQueryData<Project>(
-        projectKeys.detail(id)
-      );
+      const previousList = queryClient.getQueryData<Project[]>(projectKeys.all);
+      const previousDetail = queryClient.getQueryData<Project>(projectKeys.detail(id));
 
       queryClient.setQueryData<Project[]>(projectKeys.all, (old) =>
         old?.map((p) =>
-          p.id === id ? { ...p, ...data, updated_at: new Date().toISOString() } : p
-        )
+          p.id === id ? { ...p, ...data, updated_at: new Date().toISOString() } : p,
+        ),
       );
 
       queryClient.setQueryData<Project>(projectKeys.detail(id), (old) =>
-        old ? { ...old, ...data, updated_at: new Date().toISOString() } : old
+        old ? { ...old, ...data, updated_at: new Date().toISOString() } : old,
       );
 
       return { previousList, previousDetail };
@@ -112,6 +111,10 @@ export function useUpdateProject() {
     onSettled: (_data, _err, { id }) => {
       queryClient.invalidateQueries({ queryKey: projectKeys.all });
       queryClient.invalidateQueries({ queryKey: projectKeys.detail(id) });
+      queryClient.invalidateQueries({ queryKey: ['assignments'] });
+      queryClient.invalidateQueries({ queryKey: ['schedule'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['export'] });
     },
   });
 }
@@ -126,7 +129,7 @@ export function useDeleteProject() {
       const previous = queryClient.getQueryData<Project[]>(projectKeys.all);
 
       queryClient.setQueryData<Project[]>(projectKeys.all, (old) =>
-        old?.filter((p) => p.id !== id)
+        old?.filter((p) => p.id !== id),
       );
 
       return { previous };
@@ -138,6 +141,57 @@ export function useDeleteProject() {
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: projectKeys.all });
+      queryClient.invalidateQueries({ queryKey: ['assignments'] });
+      queryClient.invalidateQueries({ queryKey: ['schedule'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['export'] });
+    },
+  });
+}
+
+export function useCreateProjectPlaceholders() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      projectId,
+      startMonth,
+      endMonth,
+      placeholders,
+    }: {
+      projectId: string;
+      startMonth: string;
+      endMonth: string | null;
+      placeholders: ProjectPlaceholderInput[];
+    }) =>
+      createProjectPlaceholders({
+        projectId,
+        startMonth,
+        endMonth,
+        placeholders,
+      }),
+    onSettled: (_data, _err, vars) => {
+      void queryClient.invalidateQueries({
+        queryKey: projectKeys.all,
+      });
+      void queryClient.invalidateQueries({
+        queryKey: projectKeys.detail(vars.projectId),
+      });
+      void queryClient.invalidateQueries({
+        queryKey: ['assignments', 'project', vars.projectId],
+      });
+      void queryClient.invalidateQueries({
+        queryKey: ['members'],
+      });
+      void queryClient.invalidateQueries({
+        queryKey: ['schedule'],
+      });
+      void queryClient.invalidateQueries({
+        queryKey: ['dashboard'],
+      });
+      void queryClient.invalidateQueries({
+        queryKey: ['export'],
+      });
     },
   });
 }

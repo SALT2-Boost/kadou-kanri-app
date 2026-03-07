@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -32,29 +32,31 @@ export default function MemberForm({ open, onClose, member }: MemberFormProps) {
   const updateMemberSkills = useUpdateMemberSkills();
 
   const [name, setName] = useState('');
+  const [role, setRole] = useState('');
   const [category, setCategory] = useState<MemberCategory>('社員');
   const [selectedSkills, setSelectedSkills] = useState<Skill[]>([]);
   const [note, setNote] = useState('');
+  const [joinDate, setJoinDate] = useState('');
   const [nameError, setNameError] = useState(false);
 
-  useEffect(() => {
-    if (open) {
-      if (member) {
-        setName(member.name);
-        setCategory(member.category);
-        setSelectedSkills(
-          member.member_skills.map((ms) => ms.skills)
-        );
-        setNote(member.note ?? '');
-      } else {
-        setName('');
-        setCategory('社員');
-        setSelectedSkills([]);
-        setNote('');
-      }
-      setNameError(false);
+  const resetForm = () => {
+    if (member) {
+      setName(member.name);
+      setRole(member.role);
+      setCategory(member.category);
+      setSelectedSkills(member.member_skills.map((ms) => ms.skills));
+      setNote(member.note ?? '');
+      setJoinDate(member.join_date ?? '');
+    } else {
+      setName('');
+      setRole('');
+      setCategory('社員');
+      setSelectedSkills([]);
+      setNote('');
+      setJoinDate('');
     }
-  }, [open, member]);
+    setNameError(false);
+  };
 
   const handleSave = async () => {
     if (!name.trim()) {
@@ -69,15 +71,23 @@ export default function MemberForm({ open, onClose, member }: MemberFormProps) {
         // 更新
         await updateMemberMutation.mutateAsync({
           id: member.id,
-          input: { name: name.trim(), category, note: note.trim() || null },
+          input: {
+            name: name.trim(),
+            role: role.trim() || '未設定',
+            category,
+            note: note.trim() || null,
+            join_date: category === '入社予定' && joinDate ? joinDate : null,
+          },
         });
         await updateMemberSkills.mutateAsync({ memberId: member.id, skillIds });
       } else {
         // 新規作成
         const created = await createMember.mutateAsync({
           name: name.trim(),
+          role: role.trim() || '未設定',
           category,
           note: note.trim() || null,
+          join_date: category === '入社予定' && joinDate ? joinDate : null,
         });
         await updateMemberSkills.mutateAsync({ memberId: created.id, skillIds });
       }
@@ -91,7 +101,13 @@ export default function MemberForm({ open, onClose, member }: MemberFormProps) {
     createMember.isPending || updateMemberMutation.isPending || updateMemberSkills.isPending;
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="sm"
+      fullWidth
+      TransitionProps={{ onEnter: resetForm }}
+    >
       <DialogTitle>{member ? 'メンバー編集' : '新規メンバー'}</DialogTitle>
       <DialogContent>
         <Stack spacing={2.5} sx={{ mt: 1 }}>
@@ -107,6 +123,14 @@ export default function MemberForm({ open, onClose, member }: MemberFormProps) {
             required
             fullWidth
             autoFocus
+          />
+
+          <TextField
+            label="role"
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+            required
+            fullWidth
           />
 
           <FormControl fullWidth>
@@ -134,14 +158,7 @@ export default function MemberForm({ open, onClose, member }: MemberFormProps) {
             renderTags={(value, getTagProps) =>
               value.map((option, index) => {
                 const { key, ...tagProps } = getTagProps({ index });
-                return (
-                  <Chip
-                    key={key}
-                    label={option.name}
-                    size="small"
-                    {...tagProps}
-                  />
-                );
+                return <Chip key={key} label={option.name} size="small" {...tagProps} />;
               })
             }
             renderInput={(params) => (
@@ -149,12 +166,24 @@ export default function MemberForm({ open, onClose, member }: MemberFormProps) {
             )}
           />
 
+          {category === '入社予定' && (
+            <TextField
+              label="入社予定時期"
+              type="date"
+              value={joinDate}
+              onChange={(e) => setJoinDate(e.target.value)}
+              fullWidth
+              slotProps={{ inputLabel: { shrink: true } }}
+            />
+          )}
+
           <TextField
             label="備考"
             value={note}
             onChange={(e) => setNote(e.target.value)}
             multiline
-            rows={3}
+            minRows={3}
+            maxRows={10}
             fullWidth
           />
         </Stack>

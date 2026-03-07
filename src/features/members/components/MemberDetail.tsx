@@ -44,33 +44,33 @@ export default function MemberDetail() {
   const updateMemberSkills = useUpdateMemberSkills();
   const deleteMemberMutation = useDeleteMember();
 
-  const [name, setName] = useState('');
-  const [category, setCategory] = useState<MemberCategory>('社員');
-  const [selectedSkills, setSelectedSkills] = useState<Skill[]>([]);
-  const [note, setNote] = useState('');
-  const [initialized, setInitialized] = useState(false);
+  const [draft, setDraft] = useState<{
+    name: string;
+    role: string;
+    category: MemberCategory;
+    selectedSkills: Skill[];
+    note: string;
+    joinDate: string;
+  } | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
-  // member データが来たら初期化
-  if (member && !initialized) {
-    setName(member.name);
-    setCategory(member.category);
-    setSelectedSkills(member.member_skills.map((ms) => ms.skills));
-    setNote(member.note ?? '');
-    setInitialized(true);
-  }
-
   const handleSave = async () => {
-    if (!name.trim() || !id) return;
+    if (!form || !form.name.trim() || !id) return;
 
     try {
       await updateMemberMutation.mutateAsync({
         id,
-        input: { name: name.trim(), category, note: note.trim() || null },
+        input: {
+          name: form.name.trim(),
+          role: form.role.trim() || '未設定',
+          category: form.category,
+          note: form.note.trim() || null,
+          join_date: form.category === '入社予定' && form.joinDate ? form.joinDate : null,
+        },
       });
       await updateMemberSkills.mutateAsync({
         memberId: id,
-        skillIds: selectedSkills.map((s) => s.id),
+        skillIds: form.selectedSkills.map((skill) => skill.id),
       });
     } catch {
       // エラーは TanStack Query が管理
@@ -88,6 +88,40 @@ export default function MemberDetail() {
   };
 
   if (isLoading || !member) return <LoadingOverlay />;
+
+  const form =
+    draft ??
+    ({
+      name: member.name,
+      role: member.role,
+      category: member.category,
+      selectedSkills: member.member_skills.map((ms) => ms.skills),
+      note: member.note ?? '',
+      joinDate: member.join_date ?? '',
+    } satisfies {
+      name: string;
+      role: string;
+      category: MemberCategory;
+      selectedSkills: Skill[];
+      note: string;
+      joinDate: string;
+    });
+
+  const updateDraft = (
+    updates: Partial<{
+      name: string;
+      role: string;
+      category: MemberCategory;
+      selectedSkills: Skill[];
+      note: string;
+      joinDate: string;
+    }>,
+  ) => {
+    setDraft({
+      ...form,
+      ...updates,
+    });
+  };
 
   const isSaving = updateMemberMutation.isPending || updateMemberSkills.isPending;
 
@@ -117,7 +151,7 @@ export default function MemberDetail() {
               variant="contained"
               startIcon={<SaveIcon />}
               onClick={handleSave}
-              disabled={isSaving || !name.trim()}
+              disabled={isSaving || !form.name.trim()}
             >
               {isSaving ? '保存中...' : '保存'}
             </Button>
@@ -129,20 +163,28 @@ export default function MemberDetail() {
         <Stack spacing={3}>
           <TextField
             label="名前"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
+            value={form.name}
+            onChange={(e) => updateDraft({ name: e.target.value })}
             required
             fullWidth
-            error={!name.trim()}
-            helperText={!name.trim() ? '名前は必須です' : ''}
+            error={!form.name.trim()}
+            helperText={!form.name.trim() ? '名前は必須です' : ''}
+          />
+
+          <TextField
+            label="role"
+            value={form.role}
+            onChange={(e) => updateDraft({ role: e.target.value })}
+            required
+            fullWidth
           />
 
           <FormControl fullWidth>
             <InputLabel>区分</InputLabel>
             <Select
-              value={category}
+              value={form.category}
               label="区分"
-              onChange={(e) => setCategory(e.target.value as MemberCategory)}
+              onChange={(e) => updateDraft({ category: e.target.value as MemberCategory })}
             >
               {MEMBER_CATEGORIES.map((cat) => (
                 <MenuItem key={cat} value={cat}>
@@ -156,20 +198,13 @@ export default function MemberDetail() {
             multiple
             options={skills}
             getOptionLabel={(option) => option.name}
-            value={selectedSkills}
-            onChange={(_e, newValue) => setSelectedSkills(newValue)}
+            value={form.selectedSkills}
+            onChange={(_e, newValue) => updateDraft({ selectedSkills: newValue })}
             isOptionEqualToValue={(option, value) => option.id === value.id}
             renderTags={(value, getTagProps) =>
               value.map((option, index) => {
                 const { key, ...tagProps } = getTagProps({ index });
-                return (
-                  <Chip
-                    key={key}
-                    label={option.name}
-                    size="small"
-                    {...tagProps}
-                  />
-                );
+                return <Chip key={key} label={option.name} size="small" {...tagProps} />;
               })
             }
             renderInput={(params) => (
@@ -177,12 +212,24 @@ export default function MemberDetail() {
             )}
           />
 
+          {form.category === '入社予定' && (
+            <TextField
+              label="入社予定時期"
+              type="date"
+              value={form.joinDate}
+              onChange={(e) => updateDraft({ joinDate: e.target.value })}
+              fullWidth
+              slotProps={{ inputLabel: { shrink: true } }}
+            />
+          )}
+
           <TextField
             label="備考"
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
+            value={form.note}
+            onChange={(e) => updateDraft({ note: e.target.value })}
             multiline
-            rows={3}
+            minRows={3}
+            maxRows={10}
             fullWidth
           />
 

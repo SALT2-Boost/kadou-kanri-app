@@ -1,9 +1,9 @@
 import { Chip } from '@mui/material';
 
 const statusConfig: Record<string, { color: 'success' | 'warning' | 'default' }> = {
-  '確定': { color: 'success' },
-  '提案済': { color: 'warning' },
-  '提案': { color: 'default' },
+  確定: { color: 'success' },
+  提案済: { color: 'warning' },
+  提案予定: { color: 'default' },
 };
 
 interface StatusChipProps {

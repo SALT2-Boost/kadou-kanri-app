@@ -18,6 +18,7 @@ import SkillChip from '@/shared/ui/SkillChip';
 import { MEMBER_CATEGORIES } from '@/shared/constants/categories';
 import ScheduleFilter from './ScheduleFilter';
 import type { MonthlyViewRow } from '../types';
+import { filterScheduleRows } from '../transforms';
 
 function getCurrentMonthValue(): string {
   const now = new Date();
@@ -29,6 +30,7 @@ export default function MonthlyView() {
   const [categories, setCategories] = useState<string[]>([...MEMBER_CATEGORIES]);
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [searchText, setSearchText] = useState('');
+  const [onlyUnconfirmed, setOnlyUnconfirmed] = useState(false);
   const debouncedSearch = useDebounce(searchText, 300);
 
   const monthParam = `${selectedMonth}-01`;
@@ -38,18 +40,13 @@ export default function MonthlyView() {
 
   const filteredRows = useMemo(() => {
     if (!data) return [];
-    return data.rows.filter((row) => {
-      if (!categories.includes(row.category)) return false;
-      if (debouncedSearch && !row.memberName.includes(debouncedSearch)) return false;
-      if (
-        selectedSkills.length > 0 &&
-        !selectedSkills.some((s) => row.skills.includes(s))
-      ) {
-        return false;
-      }
-      return true;
+    return filterScheduleRows(data.rows, {
+      categories,
+      selectedSkills,
+      searchText: debouncedSearch,
+      onlyUnconfirmed,
     });
-  }, [data, categories, debouncedSearch, selectedSkills]);
+  }, [data, categories, debouncedSearch, onlyUnconfirmed, selectedSkills]);
 
   const projects = data?.projects ?? [];
 
@@ -60,7 +57,7 @@ export default function MonthlyView() {
         category,
         members: filteredRows.filter((r) => r.category === category),
       })).filter((g) => g.members.length > 0),
-    [filteredRows]
+    [filteredRows],
   );
 
   if (isLoading) return <LoadingOverlay />;
@@ -68,11 +65,7 @@ export default function MonthlyView() {
   return (
     <Box>
       <Box sx={{ mb: 2 }}>
-        <MonthPicker
-          label="対象月"
-          value={selectedMonth}
-          onChange={setSelectedMonth}
-        />
+        <MonthPicker label="対象月" value={selectedMonth} onChange={setSelectedMonth} />
       </Box>
 
       <ScheduleFilter
@@ -82,6 +75,8 @@ export default function MonthlyView() {
         onSkillsChange={setSelectedSkills}
         searchText={searchText}
         onSearchTextChange={setSearchText}
+        onlyUnconfirmed={onlyUnconfirmed}
+        onOnlyUnconfirmedChange={setOnlyUnconfirmed}
         skills={skills}
       />
 
@@ -103,9 +98,20 @@ export default function MonthlyView() {
                 </TableCell>
                 <TableCell
                   sx={{
-                    minWidth: 150,
+                    minWidth: 110,
                     position: 'sticky',
                     left: 120,
+                    zIndex: 3,
+                    bgcolor: 'background.paper',
+                  }}
+                >
+                  role
+                </TableCell>
+                <TableCell
+                  sx={{
+                    minWidth: 150,
+                    position: 'sticky',
+                    left: 230,
                     zIndex: 3,
                     bgcolor: 'background.paper',
                   }}
@@ -146,20 +152,17 @@ interface MonthlyGroupRowsProps {
 }
 
 function MonthlyGroupRows({ category, members, projects }: MonthlyGroupRowsProps) {
-  const totalColumns = projects.length + 3; // name + skills + projects + total
+  const totalColumns = projects.length + 4; // name + role + skills + projects + total
 
   return (
     <>
       <TableRow>
-        <TableCell
-          colSpan={totalColumns}
-          sx={{ bgcolor: 'grey.200', fontWeight: 'bold', py: 0.5 }}
-        >
+        <TableCell colSpan={totalColumns} sx={{ bgcolor: 'grey.200', fontWeight: 'bold', py: 0.5 }}>
           {category}
         </TableCell>
       </TableRow>
       {members.map((row) => (
-        <TableRow key={row.memberId} hover>
+        <TableRow key={row.rowId} hover>
           <TableCell
             sx={{
               position: 'sticky',
@@ -175,6 +178,17 @@ function MonthlyGroupRows({ category, members, projects }: MonthlyGroupRowsProps
             sx={{
               position: 'sticky',
               left: 120,
+              bgcolor: 'background.paper',
+              zIndex: 1,
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {row.role}
+          </TableCell>
+          <TableCell
+            sx={{
+              position: 'sticky',
+              left: 230,
               bgcolor: 'background.paper',
               zIndex: 1,
             }}
