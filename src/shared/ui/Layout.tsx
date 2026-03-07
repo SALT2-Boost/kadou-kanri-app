@@ -117,6 +117,7 @@ export default function Layout() {
         component="main"
         sx={{
           flexGrow: 1,
+          minWidth: 0,
           transition: 'margin 0.3s',
           ml: 0,
         }}
