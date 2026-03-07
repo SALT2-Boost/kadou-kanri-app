@@ -21,9 +21,12 @@ interface MonthlyScheduleTableProps {
   projects: MonthlyViewProject[];
 }
 
+const NAME_COLUMN_WIDTH = 220;
+const ROLE_COLUMN_WIDTH = 180;
+const SKILLS_COLUMN_WIDTH = 260;
 const STICKY_NAME_LEFT = 0;
-const STICKY_ROLE_LEFT = 180;
-const STICKY_SKILLS_LEFT = 300;
+const STICKY_ROLE_LEFT = NAME_COLUMN_WIDTH;
+const STICKY_SKILLS_LEFT = NAME_COLUMN_WIDTH + ROLE_COLUMN_WIDTH;
 const PROJECT_COLUMN_WIDTH = 150;
 const TOTAL_COLUMN_WIDTH = 84;
 const STICKY_BG = 'background.paper';
@@ -40,6 +43,15 @@ function getStickyCellStyles(left: number, highlighted: boolean) {
     left,
     zIndex: 1,
     bgcolor: highlighted ? UNCONFIRMED_STICKY_BG : STICKY_BG,
+    boxSizing: 'border-box' as const,
+  };
+}
+
+function getFixedColumnStyles(width: number) {
+  return {
+    width,
+    minWidth: width,
+    maxWidth: width,
   };
 }
 
@@ -81,7 +93,11 @@ export default function MonthlyScheduleTable({ rows, projects }: MonthlySchedule
   }
 
   const tableMinWidth =
-    STICKY_SKILLS_LEFT + 220 + projects.length * PROJECT_COLUMN_WIDTH + TOTAL_COLUMN_WIDTH;
+    NAME_COLUMN_WIDTH +
+    ROLE_COLUMN_WIDTH +
+    SKILLS_COLUMN_WIDTH +
+    projects.length * PROJECT_COLUMN_WIDTH +
+    TOTAL_COLUMN_WIDTH;
 
   return (
     <Box sx={{ overflowX: 'auto' }}>
@@ -92,8 +108,10 @@ export default function MonthlyScheduleTable({ rows, projects }: MonthlySchedule
               <TableCell
                 sx={{
                   ...getStickyCellStyles(STICKY_NAME_LEFT, false),
-                  minWidth: 180,
+                  ...getFixedColumnStyles(NAME_COLUMN_WIDTH),
                   fontWeight: 'bold',
+                  borderRight: '1px solid',
+                  borderRightColor: 'divider',
                 }}
               >
                 メンバー名
@@ -101,9 +119,11 @@ export default function MonthlyScheduleTable({ rows, projects }: MonthlySchedule
               <TableCell
                 sx={{
                   ...getStickyCellStyles(STICKY_ROLE_LEFT, false),
-                  minWidth: 120,
+                  ...getFixedColumnStyles(ROLE_COLUMN_WIDTH),
                   fontWeight: 'bold',
                   whiteSpace: 'nowrap',
+                  borderRight: '1px solid',
+                  borderRightColor: 'divider',
                 }}
               >
                 role
@@ -111,8 +131,10 @@ export default function MonthlyScheduleTable({ rows, projects }: MonthlySchedule
               <TableCell
                 sx={{
                   ...getStickyCellStyles(STICKY_SKILLS_LEFT, false),
-                  minWidth: 220,
+                  ...getFixedColumnStyles(SKILLS_COLUMN_WIDTH),
                   fontWeight: 'bold',
+                  borderRight: '2px solid',
+                  borderRightColor: 'divider',
                 }}
               >
                 スキル
@@ -216,8 +238,10 @@ function MonthlyGroupRows({ group, projects }: MonthlyGroupRowsProps) {
             <TableCell
               sx={{
                 ...getStickyCellStyles(STICKY_NAME_LEFT, isUnconfirmed),
-                minWidth: 180,
+                ...getFixedColumnStyles(NAME_COLUMN_WIDTH),
                 whiteSpace: 'nowrap',
+                borderRight: '1px solid',
+                borderRightColor: 'divider',
               }}
             >
               <Stack spacing={0.5}>
@@ -226,6 +250,7 @@ function MonthlyGroupRows({ group, projects }: MonthlyGroupRowsProps) {
                     fontWeight={500}
                     color={isUnconfirmed ? 'text.secondary' : 'text.primary'}
                     fontStyle={isUnconfirmed ? 'italic' : 'normal'}
+                    noWrap
                   >
                     {row.memberName}
                   </Typography>
@@ -236,16 +261,22 @@ function MonthlyGroupRows({ group, projects }: MonthlyGroupRowsProps) {
             <TableCell
               sx={{
                 ...getStickyCellStyles(STICKY_ROLE_LEFT, isUnconfirmed),
-                minWidth: 120,
+                ...getFixedColumnStyles(ROLE_COLUMN_WIDTH),
                 whiteSpace: 'nowrap',
+                borderRight: '1px solid',
+                borderRightColor: 'divider',
               }}
             >
-              {row.role}
+              <Typography variant="body2" noWrap>
+                {row.role}
+              </Typography>
             </TableCell>
             <TableCell
               sx={{
                 ...getStickyCellStyles(STICKY_SKILLS_LEFT, isUnconfirmed),
-                minWidth: 220,
+                ...getFixedColumnStyles(SKILLS_COLUMN_WIDTH),
+                borderRight: '2px solid',
+                borderRightColor: 'divider',
               }}
             >
               <Stack direction="row" flexWrap="wrap" gap={0.5}>
