@@ -9,24 +9,7 @@ import { MEMBER_CATEGORIES } from '@/shared/constants/categories';
 import ScheduleTable from './ScheduleTable';
 import { useAllSkills } from '../hooks';
 import { filterScheduleRows } from '../transforms';
-
-function getCurrentMonth(): string {
-  const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
-}
-
-function generateMonthRange(startMonth: string, count: number): string[] {
-  const months: string[] = [];
-  const start = new Date(startMonth);
-  for (let i = 0; i < count; i++) {
-    const d = new Date(start);
-    d.setMonth(d.getMonth() + i);
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, '0');
-    months.push(`${y}-${m}-01`);
-  }
-  return months;
-}
+import { buildMonthStartRange, getCurrentMonthStart } from '@/shared/lib/months';
 
 export default function PeriodView() {
   const [rangeType, setRangeType] = useState<'6' | '12'>('6');
@@ -36,10 +19,10 @@ export default function PeriodView() {
   const [onlyUnconfirmed, setOnlyUnconfirmed] = useState(false);
   const debouncedSearch = useDebounce(searchText, 300);
 
-  const currentMonth = useMemo(() => getCurrentMonth(), []);
+  const currentMonth = useMemo(() => getCurrentMonthStart(), []);
   const monthCount = rangeType === '6' ? 6 : 12;
   const months = useMemo(
-    () => generateMonthRange(currentMonth, monthCount),
+    () => buildMonthStartRange(currentMonth, monthCount),
     [currentMonth, monthCount],
   );
 

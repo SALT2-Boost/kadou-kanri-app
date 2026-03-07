@@ -19,11 +19,7 @@ import { MEMBER_CATEGORIES } from '@/shared/constants/categories';
 import ScheduleFilter from './ScheduleFilter';
 import type { MonthlyViewRow } from '../types';
 import { filterScheduleRows } from '../transforms';
-
-function getCurrentMonthValue(): string {
-  const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-}
+import { getCurrentMonthValue } from '@/shared/lib/months';
 
 export default function MonthlyView() {
   const [selectedMonth, setSelectedMonth] = useState(getCurrentMonthValue);

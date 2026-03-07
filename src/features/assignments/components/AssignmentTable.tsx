@@ -31,6 +31,7 @@ import type { ProjectMemberWithAssignments } from '../types';
 import AssignmentCell from './AssignmentCell';
 import AssignMemberDialog from './AssignMemberDialog';
 import ConfirmProjectMemberDialog from './ConfirmProjectMemberDialog';
+import { buildInclusiveMonthStartRange, buildMonthStartRange } from '@/shared/lib/months';
 
 interface AssignmentTableProps {
   projectId: string;
@@ -39,24 +40,7 @@ interface AssignmentTableProps {
 }
 
 function generateMonths(start: string, end: string | null): string[] {
-  const months: string[] = [];
-  const startDate = new Date(start);
-  const endDate = end ? new Date(end) : null;
-
-  if (!endDate) {
-    for (let i = 0; i < 12; i += 1) {
-      const date = new Date(startDate.getFullYear(), startDate.getMonth() + i, 1);
-      months.push(`${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-01`);
-    }
-  } else {
-    const current = new Date(startDate);
-    while (current <= endDate) {
-      months.push(`${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, '0')}-01`);
-      current.setMonth(current.getMonth() + 1);
-    }
-  }
-
-  return months;
+  return end ? buildInclusiveMonthStartRange(start, end) : buildMonthStartRange(start, 12);
 }
 
 function formatMonthLabel(month: string): string {
