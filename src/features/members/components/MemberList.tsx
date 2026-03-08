@@ -26,6 +26,8 @@ import type { MemberWithSkills } from '../types';
 import { MEMBER_CATEGORIES } from '@/shared/constants/categories';
 import MemberForm from './MemberForm';
 
+const MEMBER_LIST_CATEGORIES = MEMBER_CATEGORIES.filter((category) => category !== '未定枠');
+
 export default function MemberList() {
   const navigate = useNavigate();
   const { data: members, isLoading } = useMembers();
@@ -35,7 +37,7 @@ export default function MemberList() {
   const [searchText, setSearchText] = useState('');
   const debouncedSearch = useDebounce(searchText, 300);
   const [selectedCategories, setSelectedCategories] = useState<Set<string>>(
-    new Set(MEMBER_CATEGORIES),
+    new Set(MEMBER_LIST_CATEGORIES),
   );
   const [selectedSkillIds, setSelectedSkillIds] = useState<Set<string>>(new Set());
 
@@ -101,7 +103,7 @@ export default function MemberList() {
             <Typography variant="body2" color="text.secondary" sx={{ minWidth: 40 }}>
               区分
             </Typography>
-            {MEMBER_CATEGORIES.map((cat) => (
+            {MEMBER_LIST_CATEGORIES.map((cat) => (
               <FormControlLabel
                 key={cat}
                 control={
@@ -147,7 +149,7 @@ export default function MemberList() {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>名前</TableCell>
+              <TableCell sx={{ width: 360, minWidth: 360 }}>名前</TableCell>
               <TableCell>区分</TableCell>
               <TableCell>スキル</TableCell>
               <TableCell>備考</TableCell>
@@ -168,7 +170,7 @@ export default function MemberList() {
                   onClick={() => navigate(`/members/${member.id}`)}
                   sx={{ cursor: 'pointer' }}
                 >
-                  <TableCell>{member.name}</TableCell>
+                  <TableCell sx={{ width: 360, minWidth: 360 }}>{member.name}</TableCell>
                   <TableCell>{member.category}</TableCell>
                   <TableCell>
                     <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
