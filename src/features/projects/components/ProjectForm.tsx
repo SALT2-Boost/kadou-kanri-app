@@ -20,7 +20,7 @@ import { useCreateProject, useUpdateProject, useCreateProjectPlaceholders } from
 import { useSkills } from '@/features/members/hooks';
 import type { Skill } from '@/features/members/types';
 import type { Project } from '../types';
-import { PROJECT_CATEGORIES } from '@/shared/constants/categories';
+import { useProjectCategories } from '@/features/settings/hooks';
 
 const STATUS_OPTIONS = ['確定', '提案済', '提案予定'] as const;
 
@@ -67,8 +67,12 @@ export default function ProjectForm({ open, onClose, project }: ProjectFormProps
   const updateProject = useUpdateProject();
   const createProjectPlaceholders = useCreateProjectPlaceholders();
   const { data: allSkills = [] } = useSkills();
+  const { data: categoryMasters = [] } = useProjectCategories();
 
   const isEditMode = !!project;
+  const categoryOptions = categoryMasters.length
+    ? categoryMasters.map((item) => item.name)
+    : [category];
 
   const resetForm = () => {
     if (project) {
@@ -204,7 +208,7 @@ export default function ProjectForm({ open, onClose, project }: ProjectFormProps
             onChange={(e) => setCategory(e.target.value as typeof category)}
             fullWidth
           >
-            {PROJECT_CATEGORIES.map((opt) => (
+            {categoryOptions.map((opt) => (
               <MenuItem key={opt} value={opt}>
                 {opt}
               </MenuItem>

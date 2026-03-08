@@ -22,8 +22,8 @@ import LoadingOverlay from '@/shared/ui/LoadingOverlay';
 import MonthPicker from '@/shared/ui/MonthPicker';
 import { AssignmentTable } from '@/features/assignments';
 import { useProject, useUpdateProject, useDeleteProject } from '../hooks';
-import { PROJECT_CATEGORIES } from '@/shared/constants/categories';
 import type { ProjectCategory } from '@/shared/constants/categories';
+import { useProjectCategories } from '@/features/settings/hooks';
 
 const STATUS_OPTIONS = ['確定', '提案済', '提案予定'] as const;
 
@@ -45,6 +45,7 @@ export default function ProjectDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { data: project, isLoading } = useProject(id);
+  const { data: categoryMasters = [] } = useProjectCategories();
   const updateProject = useUpdateProject();
   const deleteProjectMutation = useDeleteProject();
 
@@ -58,6 +59,9 @@ export default function ProjectDetail() {
   const [description, setDescription] = useState('');
   const [note, setNote] = useState('');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const categoryOptions = categoryMasters.length
+    ? categoryMasters.map((item) => item.name)
+    : [category];
 
   const startEditing = () => {
     if (!project) return;
@@ -185,7 +189,7 @@ export default function ProjectDetail() {
               onChange={(e) => setCategory(e.target.value as typeof category)}
               fullWidth
             >
-              {PROJECT_CATEGORIES.map((opt) => (
+              {categoryOptions.map((opt) => (
                 <MenuItem key={opt} value={opt}>
                   {opt}
                 </MenuItem>

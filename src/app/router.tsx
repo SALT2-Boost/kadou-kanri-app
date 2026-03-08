@@ -11,6 +11,7 @@ const ProjectList = lazy(() => import('@/features/projects/components/ProjectLis
 const ProjectDetail = lazy(() => import('@/features/projects/components/ProjectDetail'));
 const DashboardPage = lazy(() => import('@/features/dashboard/components/DashboardPage'));
 const ExportPage = lazy(() => import('@/features/export/components/ExportPage'));
+const MasterSettingsPage = lazy(() => import('@/features/settings/components/MasterSettingsPage'));
 
 export default function AppRouter() {
   return (
@@ -62,6 +63,14 @@ export default function AppRouter() {
           element={
             <Suspense fallback={<LoadingOverlay />}>
               <ExportPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <Suspense fallback={<LoadingOverlay />}>
+              <MasterSettingsPage />
             </Suspense>
           }
         />

@@ -31,6 +31,21 @@ export interface Database {
         };
         Relationships: [];
       };
+      project_categories: {
+        Row: {
+          name: string;
+          created_at: string;
+        };
+        Insert: {
+          name: string;
+          created_at?: string;
+        };
+        Update: {
+          name?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       members: {
         Row: {
           id: string;

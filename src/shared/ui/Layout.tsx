@@ -21,6 +21,7 @@ import BusinessIcon from '@mui/icons-material/Business';
 import TableChartIcon from '@mui/icons-material/TableChart';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import LogoutIcon from '@mui/icons-material/Logout';
+import SettingsIcon from '@mui/icons-material/Settings';
 import { signOut } from '../lib/auth';
 import { useAuth } from '../hooks/useAuth';
 
@@ -32,6 +33,7 @@ const navItems = [
   { label: '案件', path: '/projects', icon: <BusinessIcon /> },
   { label: 'ダッシュボード', path: '/dashboard', icon: <DashboardIcon /> },
   { label: 'エクスポート', path: '/export', icon: <FileDownloadIcon /> },
+  { label: '設定', path: '/settings', icon: <SettingsIcon /> },
 ];
 
 export default function Layout() {
