@@ -1,6 +1,6 @@
 import { supabase } from '@/shared/lib/supabase';
 import type { InsertTables, UpdateTables } from '@/shared/types/database';
-import type { ProjectCategoryMaster, SkillMaster } from './types';
+import type { ProjectCategoryMaster, RoleCandidateMaster, SkillMaster } from './types';
 
 export async function fetchSkillsMaster(): Promise<SkillMaster[]> {
   const { data, error } = await supabase.from('skills').select('*').order('name');
@@ -71,6 +71,47 @@ export async function updateProjectCategoryMaster(
 
 export async function deleteProjectCategoryMaster(name: string): Promise<void> {
   const { error } = await supabase.from('project_categories').delete().eq('name', name);
+
+  if (error) throw error;
+}
+
+export async function fetchRoleCandidates(): Promise<RoleCandidateMaster[]> {
+  const { data, error } = await supabase
+    .from('role_candidates')
+    .select('*')
+    .order('created_at')
+    .order('name');
+
+  if (error) throw error;
+  return data as RoleCandidateMaster[];
+}
+
+export async function createRoleCandidateMaster(
+  input: InsertTables<'role_candidates'>,
+): Promise<RoleCandidateMaster> {
+  const { data, error } = await supabase.from('role_candidates').insert(input).select().single();
+
+  if (error) throw error;
+  return data as RoleCandidateMaster;
+}
+
+export async function updateRoleCandidateMaster(
+  currentName: string,
+  nextName: string,
+): Promise<RoleCandidateMaster> {
+  const { data, error } = await supabase
+    .from('role_candidates')
+    .update({ name: nextName } satisfies UpdateTables<'role_candidates'>)
+    .eq('name', currentName)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data as RoleCandidateMaster;
+}
+
+export async function deleteRoleCandidateMaster(name: string): Promise<void> {
+  const { error } = await supabase.from('role_candidates').delete().eq('name', name);
 
   if (error) throw error;
 }

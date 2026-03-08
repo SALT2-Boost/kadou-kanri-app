@@ -531,3 +531,10 @@ JOIN all_project_members pm
 ON CONFLICT (project_member_id, month) DO UPDATE SET
   percentage = EXCLUDED.percentage,
   note = EXCLUDED.note;
+
+INSERT INTO role_candidates (name)
+SELECT DISTINCT trim(role)
+FROM project_members
+WHERE trim(COALESCE(role, '')) <> ''
+  AND trim(role) <> '未設定'
+ON CONFLICT (name) DO NOTHING;

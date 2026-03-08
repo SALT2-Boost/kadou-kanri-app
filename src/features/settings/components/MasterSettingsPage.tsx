@@ -4,11 +4,15 @@ import PageHeader from '@/shared/ui/PageHeader';
 import MasterItemSection from './MasterItemSection';
 import {
   useCreateProjectCategoryMaster,
+  useCreateRoleCandidateMaster,
   useCreateSkillMaster,
+  useDeleteRoleCandidateMaster,
   useDeleteProjectCategoryMaster,
   useDeleteSkillMaster,
   useProjectCategories,
+  useRoleCandidates,
   useSkillsMaster,
+  useUpdateRoleCandidateMaster,
   useUpdateProjectCategoryMaster,
   useUpdateSkillMaster,
 } from '../hooks';
@@ -16,6 +20,7 @@ import {
 export default function MasterSettingsPage() {
   const { data: projectCategories = [], isLoading: projectCategoriesLoading } =
     useProjectCategories();
+  const { data: roleCandidates = [], isLoading: roleCandidatesLoading } = useRoleCandidates();
   const { data: skills = [], isLoading: skillsLoading } = useSkillsMaster();
   const createSkill = useCreateSkillMaster();
   const updateSkill = useUpdateSkillMaster();
@@ -23,8 +28,11 @@ export default function MasterSettingsPage() {
   const createProjectCategory = useCreateProjectCategoryMaster();
   const updateProjectCategory = useUpdateProjectCategoryMaster();
   const deleteProjectCategory = useDeleteProjectCategoryMaster();
+  const createRoleCandidate = useCreateRoleCandidateMaster();
+  const updateRoleCandidate = useUpdateRoleCandidateMaster();
+  const deleteRoleCandidate = useDeleteRoleCandidateMaster();
 
-  if (projectCategoriesLoading && skillsLoading) {
+  if (projectCategoriesLoading && roleCandidatesLoading && skillsLoading) {
     return <LoadingOverlay />;
   }
 
@@ -48,6 +56,23 @@ export default function MasterSettingsPage() {
             updateProjectCategory.mutateAsync({ currentName: item.name, nextName: name })
           }
           onDelete={(item) => deleteProjectCategory.mutateAsync(item.name)}
+        />
+
+        <MasterItemSection
+          title="ロール候補"
+          addLabel="ロール追加"
+          emptyText="ロール候補がありません"
+          deleteDescription="削除しても既存のPJ roleは変わりません。候補一覧から外れるだけです。"
+          items={roleCandidates.map((item) => ({
+            key: item.name,
+            name: item.name,
+          }))}
+          isLoading={roleCandidatesLoading}
+          onCreate={(name) => createRoleCandidate.mutateAsync({ name })}
+          onUpdate={(item, name) =>
+            updateRoleCandidate.mutateAsync({ currentName: item.name, nextName: name })
+          }
+          onDelete={(item) => deleteRoleCandidate.mutateAsync(item.name)}
         />
 
         <MasterItemSection

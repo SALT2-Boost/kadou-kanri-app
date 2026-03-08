@@ -16,11 +16,12 @@ import {
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import MonthPicker from '@/shared/ui/MonthPicker';
+import RoleAutocompleteField from '@/shared/ui/RoleAutocompleteField';
 import { useCreateProject, useUpdateProject, useCreateProjectPlaceholders } from '../hooks';
 import { useSkills } from '@/features/members/hooks';
 import type { Skill } from '@/features/members/types';
 import type { Project } from '../types';
-import { useProjectCategories } from '@/features/settings/hooks';
+import { useProjectCategories, useRoleCandidates } from '@/features/settings/hooks';
 
 const STATUS_OPTIONS = ['確定', '提案済', '提案予定'] as const;
 
@@ -68,11 +69,13 @@ export default function ProjectForm({ open, onClose, project }: ProjectFormProps
   const createProjectPlaceholders = useCreateProjectPlaceholders();
   const { data: allSkills = [] } = useSkills();
   const { data: categoryMasters = [] } = useProjectCategories();
+  const { data: roleCandidates = [] } = useRoleCandidates();
 
   const isEditMode = !!project;
   const categoryOptions = categoryMasters.length
     ? categoryMasters.map((item) => item.name)
     : [category];
+  const roleOptions = roleCandidates.map((candidate) => candidate.name);
 
   const resetForm = () => {
     if (project) {
@@ -315,10 +318,12 @@ export default function ProjectForm({ open, onClose, project }: ProjectFormProps
                       )}
                       noOptionsText="スキルがありません"
                     />
-                    <TextField
+                    <RoleAutocompleteField
                       label="role"
                       value={ph.role}
-                      onChange={(e) => updatePlaceholder(index, { role: e.target.value })}
+                      options={roleOptions}
+                      onChange={(nextRole) => updatePlaceholder(index, { role: nextRole })}
+                      helperText="候補から選択できますが、自由入力も可能です"
                       size="small"
                       required
                     />

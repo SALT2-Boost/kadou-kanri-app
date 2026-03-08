@@ -1,6 +1,3 @@
-export const ROLE_OPTIONS = ['SWE', 'DS', '戦コン', 'PM', 'デザイナー', 'その他'] as const;
-export type Role = (typeof ROLE_OPTIONS)[number];
-
 export type StaffingTarget = {
   role: string;
   percentage: number;

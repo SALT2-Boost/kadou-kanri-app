@@ -13,6 +13,8 @@ import {
 } from '@mui/material';
 import { useSkills } from '@/features/members/hooks';
 import type { Skill } from '@/features/members/types';
+import { useRoleCandidates } from '@/features/settings/hooks';
+import RoleAutocompleteField from '@/shared/ui/RoleAutocompleteField';
 import { useActiveMembers, useCreateProjectMember, useUpdateProjectMemberProfile } from '../hooks';
 import type { ActiveMember, ProjectMemberWithAssignments } from '../types';
 
@@ -86,8 +88,10 @@ export default function AssignMemberDialog({
   const isEditMode = Boolean(projectMember);
   const { data: activeMembers = [] } = useActiveMembers(open);
   const { data: skills = [] } = useSkills();
+  const { data: roleCandidates = [] } = useRoleCandidates();
   const createProjectMember = useCreateProjectMember();
   const updateProjectMemberProfile = useUpdateProjectMemberProfile();
+  const roleOptions = roleCandidates.map((candidate) => candidate.name);
 
   const [draft, setDraft] = useState<DialogDraft | null>(null);
   const state = draft ?? createInitialDraft(projectMember);
@@ -257,16 +261,18 @@ export default function AssignMemberDialog({
             />
           )}
 
-          <TextField
+          <RoleAutocompleteField
             label="PJ role"
             value={role}
-            onChange={(event) => {
+            options={roleOptions}
+            onChange={(nextRole) => {
               updateDraft({
-                role: event.target.value,
+                role: nextRole,
                 formError: null,
               });
             }}
             required
+            helperText="候補から選択できますが、自由入力も可能です"
           />
 
           <Autocomplete

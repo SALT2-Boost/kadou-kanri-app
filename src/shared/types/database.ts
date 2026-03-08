@@ -46,6 +46,21 @@ export interface Database {
         };
         Relationships: [];
       };
+      role_candidates: {
+        Row: {
+          name: string;
+          created_at: string;
+        };
+        Insert: {
+          name: string;
+          created_at?: string;
+        };
+        Update: {
+          name?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       members: {
         Row: {
           id: string;

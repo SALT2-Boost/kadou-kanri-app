@@ -26,6 +26,18 @@ const deleteProjectCategory = {
   mutateAsync: vi.fn(),
   isPending: false,
 };
+const createRoleCandidate = {
+  mutateAsync: vi.fn(),
+  isPending: false,
+};
+const updateRoleCandidate = {
+  mutateAsync: vi.fn(),
+  isPending: false,
+};
+const deleteRoleCandidate = {
+  mutateAsync: vi.fn(),
+  isPending: false,
+};
 
 vi.mock('../hooks', () => ({
   useSkillsMaster: vi.fn(() => ({
@@ -39,12 +51,19 @@ vi.mock('../hooks', () => ({
     data: [{ name: '戦コン' }, { name: 'データサイエンス' }],
     isLoading: false,
   })),
+  useRoleCandidates: vi.fn(() => ({
+    data: [{ name: 'PM' }, { name: 'SWE' }],
+    isLoading: false,
+  })),
   useCreateSkillMaster: vi.fn(() => createSkill),
   useUpdateSkillMaster: vi.fn(() => updateSkill),
   useDeleteSkillMaster: vi.fn(() => deleteSkill),
   useCreateProjectCategoryMaster: vi.fn(() => createProjectCategory),
   useUpdateProjectCategoryMaster: vi.fn(() => updateProjectCategory),
   useDeleteProjectCategoryMaster: vi.fn(() => deleteProjectCategory),
+  useCreateRoleCandidateMaster: vi.fn(() => createRoleCandidate),
+  useUpdateRoleCandidateMaster: vi.fn(() => updateRoleCandidate),
+  useDeleteRoleCandidateMaster: vi.fn(() => deleteRoleCandidate),
 }));
 
 describe('MasterSettingsPage', () => {
@@ -55,6 +74,9 @@ describe('MasterSettingsPage', () => {
     createProjectCategory.mutateAsync.mockReset().mockResolvedValue(undefined);
     updateProjectCategory.mutateAsync.mockReset().mockResolvedValue(undefined);
     deleteProjectCategory.mutateAsync.mockReset().mockResolvedValue(undefined);
+    createRoleCandidate.mutateAsync.mockReset().mockResolvedValue(undefined);
+    updateRoleCandidate.mutateAsync.mockReset().mockResolvedValue(undefined);
+    deleteRoleCandidate.mutateAsync.mockReset().mockResolvedValue(undefined);
   });
 
   it('PJカテゴリとスキルのマスタ一覧を表示する', () => {
@@ -62,11 +84,25 @@ describe('MasterSettingsPage', () => {
 
     expect(screen.getByText('マスタ設定')).toBeInTheDocument();
     expect(screen.getByText('PJカテゴリ')).toBeInTheDocument();
+    expect(screen.getByText('ロール候補')).toBeInTheDocument();
     expect(screen.getByText('スキル')).toBeInTheDocument();
     expect(screen.getByText('戦コン')).toBeInTheDocument();
     expect(screen.getByText('データサイエンス')).toBeInTheDocument();
+    expect(screen.getByText('PM')).toBeInTheDocument();
+    expect(screen.getAllByText('SWE')).toHaveLength(2);
     expect(screen.getByText('DS')).toBeInTheDocument();
-    expect(screen.getByText('SWE')).toBeInTheDocument();
+  });
+
+  it('ロール候補を追加できる', async () => {
+    render(<MasterSettingsPage />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'ロール追加' }));
+    fireEvent.change(screen.getByLabelText('名前'), { target: { value: 'QA' } });
+    fireEvent.click(screen.getByRole('button', { name: '保存' }));
+
+    await waitFor(() => {
+      expect(createRoleCandidate.mutateAsync).toHaveBeenCalledWith({ name: 'QA' });
+    });
   });
 
   it('スキルを追加できる', async () => {
