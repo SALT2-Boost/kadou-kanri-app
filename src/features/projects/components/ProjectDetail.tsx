@@ -19,6 +19,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SaveIcon from '@mui/icons-material/Save';
 import LoadingOverlay from '@/shared/ui/LoadingOverlay';
+import { useRegisterUnsavedChanges, useUnsavedChanges } from '@/shared/hooks/useUnsavedChanges';
 import MonthPicker from '@/shared/ui/MonthPicker';
 import { AssignmentTable } from '@/features/assignments';
 import { useProject, useUpdateProject, useDeleteProject } from '../hooks';
@@ -48,6 +49,7 @@ export default function ProjectDetail() {
   const { data: categoryMasters = [] } = useProjectCategories();
   const updateProject = useUpdateProject();
   const deleteProjectMutation = useDeleteProject();
+  const { confirmIfNeeded } = useUnsavedChanges();
 
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState('');
@@ -59,6 +61,16 @@ export default function ProjectDetail() {
   const [description, setDescription] = useState('');
   const [note, setNote] = useState('');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const baseProject = {
+    name: project?.name ?? '',
+    monthlyRevenue: project?.monthly_revenue != null ? String(project.monthly_revenue) : '',
+    startMonth: project?.start_month.slice(0, 7) ?? '',
+    endMonth: project?.end_month ? project.end_month.slice(0, 7) : '',
+    status: project?.status ?? ('提案予定' as const),
+    category: project?.category ?? ('その他' as ProjectCategory),
+    description: project?.description ?? '',
+    note: project?.note ?? '',
+  };
   const categoryOptions = categoryMasters.length
     ? categoryMasters.map((item) => item.name)
     : [category];
@@ -82,6 +94,18 @@ export default function ProjectDetail() {
   };
 
   const monthCount = calcMonthCount(startMonth, endMonth);
+  const isDirty =
+    Boolean(project) &&
+    editing &&
+    (name !== baseProject.name ||
+      monthlyRevenue !== baseProject.monthlyRevenue ||
+      startMonth !== baseProject.startMonth ||
+      endMonth !== baseProject.endMonth ||
+      status !== baseProject.status ||
+      category !== baseProject.category ||
+      description !== baseProject.description ||
+      note !== baseProject.note);
+  useRegisterUnsavedChanges(isDirty);
 
   const handleSave = () => {
     if (!id || name.trim() === '' || startMonth === '') return;
@@ -125,7 +149,14 @@ export default function ProjectDetail() {
     <Box sx={{ p: 3 }}>
       {/* Header */}
       <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 3 }}>
-        <Button startIcon={<ArrowBackIcon />} onClick={() => navigate('/projects')} color="inherit">
+        <Button
+          startIcon={<ArrowBackIcon />}
+          onClick={() => {
+            if (!confirmIfNeeded()) return;
+            navigate('/projects');
+          }}
+          color="inherit"
+        >
           案件一覧
         </Button>
       </Stack>
@@ -139,7 +170,14 @@ export default function ProjectDetail() {
           <Stack direction="row" spacing={1}>
             {editing ? (
               <>
-                <Button onClick={() => setEditing(false)} color="inherit" size="small">
+                <Button
+                  onClick={() => {
+                    if (!confirmIfNeeded()) return;
+                    setEditing(false);
+                  }}
+                  color="inherit"
+                  size="small"
+                >
                   キャンセル
                 </Button>
                 <Button

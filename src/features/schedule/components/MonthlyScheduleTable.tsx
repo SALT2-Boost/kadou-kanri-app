@@ -1,9 +1,7 @@
 import { useMemo } from 'react';
-import { Link as RouterLink } from 'react-router-dom';
 import {
   Box,
   Chip,
-  Link,
   Stack,
   Table,
   TableBody,
@@ -14,6 +12,7 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
+import GuardedLink from '@/shared/ui/GuardedLink';
 import SkillChip from '@/shared/ui/SkillChip';
 import { MEMBER_CATEGORIES } from '@/shared/constants/categories';
 import type { MonthlyViewProject, MonthlyViewRow } from '../types';
@@ -152,8 +151,7 @@ export default function MonthlyScheduleTable({ rows, projects }: MonthlySchedule
                   }}
                 >
                   <Tooltip title={project.name}>
-                    <Link
-                      component={RouterLink}
+                    <GuardedLink
                       to={`/projects/${project.id}`}
                       underline="hover"
                       color="inherit"
@@ -174,7 +172,7 @@ export default function MonthlyScheduleTable({ rows, projects }: MonthlySchedule
                       >
                         {project.name}
                       </Typography>
-                    </Link>
+                    </GuardedLink>
                   </Tooltip>
                 </TableCell>
               ))}
@@ -270,8 +268,7 @@ function MonthlyGroupRows({ group, projects }: MonthlyGroupRowsProps) {
               <Stack spacing={0.5}>
                 <Stack direction="row" spacing={0.75} alignItems="center">
                   {row.memberId ? (
-                    <Link
-                      component={RouterLink}
+                    <GuardedLink
                       to={`/members/${row.memberId}`}
                       underline="hover"
                       color="inherit"
@@ -280,7 +277,7 @@ function MonthlyGroupRows({ group, projects }: MonthlyGroupRowsProps) {
                       <Typography fontWeight={500} noWrap>
                         {row.memberName}
                       </Typography>
-                    </Link>
+                    </GuardedLink>
                   ) : (
                     <Typography
                       fontWeight={500}

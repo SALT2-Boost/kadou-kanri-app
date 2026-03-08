@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
+import { UnsavedChangesProvider } from '@/shared/hooks/useUnsavedChanges';
 import MonthlyScheduleTable from './MonthlyScheduleTable';
 import type { MonthlyViewProject, MonthlyViewRow } from '../types';
 
@@ -37,7 +38,9 @@ describe('MonthlyScheduleTable', () => {
   it('データがない場合は空状態を表示する', () => {
     render(
       <MemoryRouter>
-        <MonthlyScheduleTable rows={[]} projects={[]} />
+        <UnsavedChangesProvider>
+          <MonthlyScheduleTable rows={[]} projects={[]} />
+        </UnsavedChangesProvider>
       </MemoryRouter>,
     );
 
@@ -47,7 +50,9 @@ describe('MonthlyScheduleTable', () => {
   it('未確定行をわかりやすく表示する', () => {
     render(
       <MemoryRouter>
-        <MonthlyScheduleTable rows={[confirmedRow, unconfirmedRow]} projects={projects} />
+        <UnsavedChangesProvider>
+          <MonthlyScheduleTable rows={[confirmedRow, unconfirmedRow]} projects={projects} />
+        </UnsavedChangesProvider>
       </MemoryRouter>,
     );
 
@@ -59,7 +64,9 @@ describe('MonthlyScheduleTable', () => {
   it('案件列ヘッダーと合計列を表示する', () => {
     render(
       <MemoryRouter>
-        <MonthlyScheduleTable rows={[confirmedRow]} projects={projects} />
+        <UnsavedChangesProvider>
+          <MonthlyScheduleTable rows={[confirmedRow]} projects={projects} />
+        </UnsavedChangesProvider>
       </MemoryRouter>,
     );
 
@@ -71,7 +78,9 @@ describe('MonthlyScheduleTable', () => {
   it('合計は confirmed と total を分け、提案中案件セルはグレー背景にする', () => {
     render(
       <MemoryRouter>
-        <MonthlyScheduleTable rows={[confirmedRow]} projects={projects} />
+        <UnsavedChangesProvider>
+          <MonthlyScheduleTable rows={[confirmedRow]} projects={projects} />
+        </UnsavedChangesProvider>
       </MemoryRouter>,
     );
 
@@ -83,7 +92,9 @@ describe('MonthlyScheduleTable', () => {
   it('member 集約ビューでは role 列を表示せず、左側の人情報列を sticky で固定する', () => {
     render(
       <MemoryRouter>
-        <MonthlyScheduleTable rows={[confirmedRow]} projects={projects} />
+        <UnsavedChangesProvider>
+          <MonthlyScheduleTable rows={[confirmedRow]} projects={projects} />
+        </UnsavedChangesProvider>
       </MemoryRouter>,
     );
 
@@ -105,7 +116,9 @@ describe('MonthlyScheduleTable', () => {
   it('メンバー名と案件名から詳細画面へ遷移できるリンクを表示する', () => {
     render(
       <MemoryRouter>
-        <MonthlyScheduleTable rows={[confirmedRow]} projects={projects} />
+        <UnsavedChangesProvider>
+          <MonthlyScheduleTable rows={[confirmedRow]} projects={projects} />
+        </UnsavedChangesProvider>
       </MemoryRouter>,
     );
 

@@ -17,6 +17,7 @@ import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import MonthPicker from '@/shared/ui/MonthPicker';
 import RoleAutocompleteField from '@/shared/ui/RoleAutocompleteField';
+import { useUnsavedChangesDialogGuard } from '@/shared/hooks/useUnsavedChanges';
 import { useCreateProject, useUpdateProject, useCreateProjectPlaceholders } from '../hooks';
 import { useSkills } from '@/features/members/hooks';
 import type { Skill } from '@/features/members/types';
@@ -51,16 +52,40 @@ interface ProjectFormProps {
   project?: Project;
 }
 
+function buildInitialProjectFormState(project?: Project) {
+  return {
+    name: project?.name ?? '',
+    monthlyRevenue: project?.monthly_revenue != null ? String(project.monthly_revenue) : '',
+    startMonth: project?.start_month.slice(0, 7) ?? '',
+    endMonth: project?.end_month ? project.end_month.slice(0, 7) : '',
+    status: project?.status ?? ('提案予定' as const),
+    category: project?.category ?? ('その他' as Project['category']),
+    description: project?.description ?? '',
+    note: project?.note ?? '',
+    placeholders: [] as PlaceholderDraft[],
+  };
+}
+
+function normalizePlaceholders(placeholders: PlaceholderDraft[]) {
+  return placeholders.map((placeholder) => ({
+    name: placeholder.name,
+    role: placeholder.role,
+    note: placeholder.note,
+    skillIds: placeholder.skills.map((skill) => skill.id).sort(),
+  }));
+}
+
 export default function ProjectForm({ open, onClose, project }: ProjectFormProps) {
-  const [name, setName] = useState('');
-  const [monthlyRevenue, setMonthlyRevenue] = useState('');
-  const [startMonth, setStartMonth] = useState('');
-  const [endMonth, setEndMonth] = useState('');
-  const [status, setStatus] = useState<'確定' | '提案済' | '提案予定'>('提案予定');
-  const [category, setCategory] = useState<Project['category']>('その他');
-  const [description, setDescription] = useState('');
-  const [note, setNote] = useState('');
-  const [placeholders, setPlaceholders] = useState<PlaceholderDraft[]>([]);
+  const initialState = buildInitialProjectFormState(project);
+  const [name, setName] = useState(initialState.name);
+  const [monthlyRevenue, setMonthlyRevenue] = useState(initialState.monthlyRevenue);
+  const [startMonth, setStartMonth] = useState(initialState.startMonth);
+  const [endMonth, setEndMonth] = useState(initialState.endMonth);
+  const [status, setStatus] = useState<'確定' | '提案済' | '提案予定'>(initialState.status);
+  const [category, setCategory] = useState<Project['category']>(initialState.category);
+  const [description, setDescription] = useState(initialState.description);
+  const [note, setNote] = useState(initialState.note);
+  const [placeholders, setPlaceholders] = useState<PlaceholderDraft[]>(initialState.placeholders);
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -124,6 +149,18 @@ export default function ProjectForm({ open, onClose, project }: ProjectFormProps
   };
 
   const monthCount = calcMonthCount(startMonth, endMonth);
+  const isDirty =
+    name !== initialState.name ||
+    monthlyRevenue !== initialState.monthlyRevenue ||
+    startMonth !== initialState.startMonth ||
+    endMonth !== initialState.endMonth ||
+    status !== initialState.status ||
+    category !== initialState.category ||
+    description !== initialState.description ||
+    note !== initialState.note ||
+    JSON.stringify(normalizePlaceholders(placeholders)) !==
+      JSON.stringify(normalizePlaceholders(initialState.placeholders));
+  const { requestClose, dialogProps } = useUnsavedChangesDialogGuard(isDirty, onClose);
 
   const handleSave = async () => {
     if (!isValid) return;
@@ -188,7 +225,8 @@ export default function ProjectForm({ open, onClose, project }: ProjectFormProps
   return (
     <Dialog
       open={open}
-      onClose={onClose}
+      onClose={dialogProps.onClose}
+      disableEscapeKeyDown={dialogProps.disableEscapeKeyDown}
       fullWidth
       maxWidth="sm"
       TransitionProps={{ onEnter: resetForm }}
@@ -373,7 +411,7 @@ export default function ProjectForm({ open, onClose, project }: ProjectFormProps
         </Stack>
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 2 }}>
-        <Button onClick={onClose} color="inherit">
+        <Button onClick={requestClose} color="inherit">
           キャンセル
         </Button>
         <Button

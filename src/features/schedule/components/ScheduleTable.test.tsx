@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
+import { UnsavedChangesProvider } from '@/shared/hooks/useUnsavedChanges';
 import ScheduleTable from './ScheduleTable';
 import type { ScheduleRow } from '../types';
 
@@ -35,7 +36,9 @@ describe('ScheduleTable', () => {
   it('member 集約ビューでは role 列を表示しない', () => {
     render(
       <MemoryRouter>
-        <ScheduleTable rows={rows} months={months} />
+        <UnsavedChangesProvider>
+          <ScheduleTable rows={rows} months={months} />
+        </UnsavedChangesProvider>
       </MemoryRouter>,
     );
 
@@ -47,7 +50,9 @@ describe('ScheduleTable', () => {
   it('左側の member 情報列と区分見出しを sticky で固定する', () => {
     render(
       <MemoryRouter>
-        <ScheduleTable rows={rows} months={months} />
+        <UnsavedChangesProvider>
+          <ScheduleTable rows={rows} months={months} />
+        </UnsavedChangesProvider>
       </MemoryRouter>,
     );
 
@@ -63,7 +68,9 @@ describe('ScheduleTable', () => {
   it('メンバー名と案件名から詳細画面へ遷移できるリンクを表示する', () => {
     render(
       <MemoryRouter>
-        <ScheduleTable rows={rows} months={months} />
+        <UnsavedChangesProvider>
+          <ScheduleTable rows={rows} months={months} />
+        </UnsavedChangesProvider>
       </MemoryRouter>,
     );
 

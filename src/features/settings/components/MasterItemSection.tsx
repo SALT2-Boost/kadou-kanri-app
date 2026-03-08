@@ -20,6 +20,7 @@ import {
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
+import { useUnsavedChangesDialogGuard } from '@/shared/hooks/useUnsavedChanges';
 
 interface MasterItem {
   key: string;
@@ -59,6 +60,7 @@ export default function MasterItemSection({
   const [name, setName] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const isEditingDialogOpen = dialogState?.type === 'create' || dialogState?.type === 'edit';
 
   useEffect(() => {
     if (!dialogState) {
@@ -118,6 +120,17 @@ export default function MasterItemSection({
     }
   };
 
+  const isDirty =
+    dialogState?.type === 'create'
+      ? name.trim() !== ''
+      : dialogState?.type === 'edit'
+        ? name.trim() !== dialogState.item.name.trim()
+        : false;
+  const { requestClose, dialogProps } = useUnsavedChangesDialogGuard(
+    isEditingDialogOpen && isDirty,
+    closeDialog,
+  );
+
   return (
     <Paper component="section" variant="outlined" sx={{ p: 3 }}>
       <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
@@ -174,8 +187,9 @@ export default function MasterItemSection({
       )}
 
       <Dialog
-        open={dialogState?.type === 'create' || dialogState?.type === 'edit'}
-        onClose={closeDialog}
+        open={isEditingDialogOpen}
+        onClose={dialogProps.onClose}
+        disableEscapeKeyDown={dialogProps.disableEscapeKeyDown}
         fullWidth
         maxWidth="xs"
       >
@@ -195,7 +209,7 @@ export default function MasterItemSection({
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={closeDialog} disabled={submitting}>
+          <Button onClick={requestClose} disabled={submitting}>
             キャンセル
           </Button>
           <Button variant="contained" onClick={handleSubmit} disabled={submitting}>

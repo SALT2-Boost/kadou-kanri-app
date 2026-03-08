@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
+import { UnsavedChangesProvider } from '@/shared/hooks/useUnsavedChanges';
 import AssignmentTable from './AssignmentTable';
 
 vi.mock('../hooks', () => ({
@@ -59,7 +60,9 @@ describe('AssignmentTable', () => {
   it('左側のメンバー情報列を固定し、確定メンバー名をリンク化する', () => {
     render(
       <MemoryRouter>
-        <AssignmentTable projectId="p-1" startMonth="2026-03-01" endMonth="2026-04-01" />
+        <UnsavedChangesProvider>
+          <AssignmentTable projectId="p-1" startMonth="2026-03-01" endMonth="2026-04-01" />
+        </UnsavedChangesProvider>
       </MemoryRouter>,
     );
 

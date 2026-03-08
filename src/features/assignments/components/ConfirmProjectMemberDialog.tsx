@@ -10,6 +10,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
+import { useUnsavedChangesDialogGuard } from '@/shared/hooks/useUnsavedChanges';
 import { useActiveMembers, useConfirmProjectMember } from '../hooks';
 import type { ActiveMember } from '../types';
 
@@ -49,8 +50,19 @@ export default function ConfirmProjectMemberDialog({
     handleClose();
   };
 
+  const { requestClose, dialogProps } = useUnsavedChangesDialogGuard(
+    open && selectedMember !== null,
+    handleClose,
+  );
+
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+    <Dialog
+      open={open}
+      onClose={dialogProps.onClose}
+      disableEscapeKeyDown={dialogProps.disableEscapeKeyDown}
+      maxWidth="sm"
+      fullWidth
+    >
       <DialogTitle>未確定枠を実メンバーへ差し替え</DialogTitle>
       <DialogContent>
         <Stack spacing={2} sx={{ mt: 1 }}>
@@ -70,7 +82,7 @@ export default function ConfirmProjectMemberDialog({
         </Stack>
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose} color="inherit">
+        <Button onClick={requestClose} color="inherit">
           キャンセル
         </Button>
         <Button

@@ -24,6 +24,7 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import SettingsIcon from '@mui/icons-material/Settings';
 import { signOut } from '../lib/auth';
 import { useAuth } from '../hooks/useAuth';
+import { useUnsavedChanges } from '../hooks/useUnsavedChanges';
 
 const DRAWER_WIDTH = 240;
 
@@ -41,8 +42,10 @@ export default function Layout() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
+  const { confirmIfNeeded } = useUnsavedChanges();
 
   const handleLogout = () => {
+    if (!confirmIfNeeded()) return;
     void signOut();
   };
 
@@ -100,7 +103,11 @@ export default function Layout() {
             <ListItemButton
               key={item.path}
               selected={location.pathname === item.path}
-              onClick={() => navigate(item.path)}
+              onClick={() => {
+                if (location.pathname === item.path) return;
+                if (!confirmIfNeeded()) return;
+                navigate(item.path);
+              }}
               sx={{
                 '&.Mui-selected': {
                   color: 'primary.main',

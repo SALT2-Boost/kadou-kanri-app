@@ -17,6 +17,7 @@ import {
 import { useSkills, useCreateMember, useUpdateMember, useUpdateMemberSkills } from '../hooks';
 import { MEMBER_CATEGORIES, MEMBER_COMPANIES } from '@/shared/constants/categories';
 import type { MemberCategory, MemberCompany } from '@/shared/constants/categories';
+import { useUnsavedChangesDialogGuard } from '@/shared/hooks/useUnsavedChanges';
 import type { MemberWithSkills, Skill } from '../types';
 
 interface MemberFormProps {
@@ -25,18 +26,34 @@ interface MemberFormProps {
   member?: MemberWithSkills;
 }
 
+function buildMemberFormState(member?: MemberWithSkills) {
+  return {
+    name: member?.name ?? '',
+    category: member?.category ?? ('社員' as MemberCategory),
+    company: member?.company ?? ('ブーストコンサルティング' as MemberCompany),
+    selectedSkills: member?.member_skills.map((ms) => ms.skills) ?? [],
+    note: member?.note ?? '',
+    joinDate: member?.join_date ?? '',
+  };
+}
+
+function getSkillIds(skills: Skill[]) {
+  return skills.map((skill) => skill.id).sort();
+}
+
 export default function MemberForm({ open, onClose, member }: MemberFormProps) {
   const { data: skills = [] } = useSkills();
   const createMember = useCreateMember();
   const updateMemberMutation = useUpdateMember();
   const updateMemberSkills = useUpdateMemberSkills();
+  const initialState = buildMemberFormState(member);
 
-  const [name, setName] = useState('');
-  const [category, setCategory] = useState<MemberCategory>('社員');
-  const [company, setCompany] = useState<MemberCompany>('ブーストコンサルティング');
-  const [selectedSkills, setSelectedSkills] = useState<Skill[]>([]);
-  const [note, setNote] = useState('');
-  const [joinDate, setJoinDate] = useState('');
+  const [name, setName] = useState(initialState.name);
+  const [category, setCategory] = useState<MemberCategory>(initialState.category);
+  const [company, setCompany] = useState<MemberCompany>(initialState.company);
+  const [selectedSkills, setSelectedSkills] = useState<Skill[]>(initialState.selectedSkills);
+  const [note, setNote] = useState(initialState.note);
+  const [joinDate, setJoinDate] = useState(initialState.joinDate);
   const [nameError, setNameError] = useState(false);
 
   const resetForm = () => {
@@ -99,11 +116,21 @@ export default function MemberForm({ open, onClose, member }: MemberFormProps) {
 
   const isSubmitting =
     createMember.isPending || updateMemberMutation.isPending || updateMemberSkills.isPending;
+  const isDirty =
+    name !== initialState.name ||
+    category !== initialState.category ||
+    company !== initialState.company ||
+    note !== initialState.note ||
+    joinDate !== initialState.joinDate ||
+    JSON.stringify(getSkillIds(selectedSkills)) !==
+      JSON.stringify(getSkillIds(initialState.selectedSkills));
+  const { requestClose, dialogProps } = useUnsavedChangesDialogGuard(isDirty, onClose);
 
   return (
     <Dialog
       open={open}
-      onClose={onClose}
+      onClose={dialogProps.onClose}
+      disableEscapeKeyDown={dialogProps.disableEscapeKeyDown}
       maxWidth="sm"
       fullWidth
       TransitionProps={{ onEnter: resetForm }}
@@ -196,7 +223,7 @@ export default function MemberForm({ open, onClose, member }: MemberFormProps) {
         </Stack>
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 2 }}>
-        <Button onClick={onClose} disabled={isSubmitting}>
+        <Button onClick={requestClose} disabled={isSubmitting}>
           キャンセル
         </Button>
         <Button variant="contained" onClick={handleSave} disabled={isSubmitting}>

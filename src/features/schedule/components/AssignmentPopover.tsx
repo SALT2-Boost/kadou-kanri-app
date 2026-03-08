@@ -1,6 +1,4 @@
-import { Link as RouterLink } from 'react-router-dom';
 import {
-  Link,
   Popover,
   Table,
   TableBody,
@@ -9,6 +7,7 @@ import {
   TableRow,
   Typography,
 } from '@mui/material';
+import GuardedLink from '@/shared/ui/GuardedLink';
 
 interface AssignmentPopoverProps {
   anchorEl: HTMLElement | null;
@@ -46,14 +45,9 @@ export default function AssignmentPopover({
           {assignments.map((a, i) => (
             <TableRow key={i}>
               <TableCell>
-                <Link
-                  component={RouterLink}
-                  to={`/projects/${a.projectId}`}
-                  underline="hover"
-                  color="inherit"
-                >
+                <GuardedLink to={`/projects/${a.projectId}`} underline="hover" color="inherit">
                   {a.projectName}
-                </Link>
+                </GuardedLink>
               </TableCell>
               <TableCell align="right">{a.percentage}%</TableCell>
             </TableRow>

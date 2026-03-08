@@ -5,6 +5,7 @@ import CssBaseline from '@mui/material/CssBaseline';
 import theme from './theme';
 import AppRouter from './router';
 import { useAuth } from '@/shared/hooks/useAuth';
+import { UnsavedChangesProvider } from '@/shared/hooks/useUnsavedChanges';
 import LoginPage from '@/shared/ui/LoginPage';
 import LoadingOverlay from '@/shared/ui/LoadingOverlay';
 
@@ -31,7 +32,9 @@ function AuthGate() {
 
   return (
     <BrowserRouter>
-      <AppRouter />
+      <UnsavedChangesProvider>
+        <AppRouter />
+      </UnsavedChangesProvider>
     </BrowserRouter>
   );
 }

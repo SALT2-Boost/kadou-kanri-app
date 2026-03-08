@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import {
   Autocomplete,
   Button,
@@ -14,6 +14,7 @@ import {
 import { useSkills } from '@/features/members/hooks';
 import type { Skill } from '@/features/members/types';
 import { useRoleCandidates } from '@/features/settings/hooks';
+import { useUnsavedChangesDialogGuard } from '@/shared/hooks/useUnsavedChanges';
 import RoleAutocompleteField from '@/shared/ui/RoleAutocompleteField';
 import { useActiveMembers, useCreateProjectMember, useUpdateProjectMemberProfile } from '../hooks';
 import type { ActiveMember, ProjectMemberWithAssignments } from '../types';
@@ -76,6 +77,18 @@ function createInitialDraft(projectMember?: ProjectMemberWithAssignments | null)
   };
 }
 
+function normalizeDraft(draft: DialogDraft) {
+  return {
+    mode: draft.mode,
+    selectedMemberId: draft.selectedMember?.id ?? null,
+    displayName: draft.displayName,
+    role: draft.role,
+    selectedSkillIds: draft.selectedSkills.map((skill) => skill.id).sort(),
+    note: draft.note,
+    percentage: draft.percentage,
+  };
+}
+
 export default function AssignMemberDialog({
   open,
   onClose,
@@ -95,18 +108,15 @@ export default function AssignMemberDialog({
 
   const [draft, setDraft] = useState<DialogDraft | null>(null);
   const state = draft ?? createInitialDraft(projectMember);
+  const initialState = createInitialDraft(projectMember);
   const { mode, selectedMember, displayName, role, selectedSkills, note, percentage, formError } =
     state;
 
-  const selectableMembers = useMemo(
-    () => activeMembers.filter((member) => !existingMemberIds.includes(member.id)),
-    [activeMembers, existingMemberIds],
+  const selectableMembers = activeMembers.filter(
+    (member) => !existingMemberIds.includes(member.id),
   );
-
-  const previewName = useMemo(
-    () => (mode === 'unconfirmed' ? displayName.trim() || buildDefaultUnconfirmedName(role) : ''),
-    [displayName, mode, role],
-  );
+  const previewName =
+    mode === 'unconfirmed' ? displayName.trim() || buildDefaultUnconfirmedName(role) : '';
 
   const updateDraft = (updates: Partial<DialogDraft>) => {
     setDraft({
@@ -189,9 +199,19 @@ export default function AssignMemberDialog({
     role.trim() !== '' &&
     selectedSkills.length > 0 &&
     (isEditMode || (mode === 'existing' ? selectedMember !== null : true));
+  const isDirty =
+    draft !== null &&
+    JSON.stringify(normalizeDraft(state)) !== JSON.stringify(normalizeDraft(initialState));
+  const { requestClose, dialogProps } = useUnsavedChangesDialogGuard(isDirty, handleClose);
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+    <Dialog
+      open={open}
+      onClose={dialogProps.onClose}
+      disableEscapeKeyDown={dialogProps.disableEscapeKeyDown}
+      maxWidth="sm"
+      fullWidth
+    >
       <DialogTitle>{isEditMode ? 'PJメンバー編集' : 'PJメンバー追加'}</DialogTitle>
       <DialogContent>
         <Stack spacing={2.5} sx={{ mt: 1 }}>
@@ -337,7 +357,7 @@ export default function AssignMemberDialog({
         </Stack>
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose} color="inherit">
+        <Button onClick={requestClose} color="inherit">
           キャンセル
         </Button>
         <Button variant="contained" onClick={handleSave} disabled={!canSave || isSubmitting}>

@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react';
-import { Link as RouterLink } from 'react-router-dom';
 import {
   Box,
   Button,
@@ -11,7 +10,6 @@ import {
   IconButton,
   Paper,
   Stack,
-  Link,
   Table,
   TableBody,
   TableCell,
@@ -34,6 +32,7 @@ import AssignmentCell from './AssignmentCell';
 import AssignMemberDialog from './AssignMemberDialog';
 import ConfirmProjectMemberDialog from './ConfirmProjectMemberDialog';
 import { buildInclusiveMonthStartRange, buildMonthStartRange } from '@/shared/lib/months';
+import GuardedLink from '@/shared/ui/GuardedLink';
 
 interface AssignmentTableProps {
   projectId: string;
@@ -222,15 +221,14 @@ export default function AssignmentTable({ projectId, startMonth, endMonth }: Ass
                     <Stack spacing={0.5}>
                       <Stack direction="row" spacing={0.75} alignItems="center">
                         {row.memberId ? (
-                          <Link
-                            component={RouterLink}
+                          <GuardedLink
                             to={`/members/${row.memberId}`}
                             underline="hover"
                             color="inherit"
                             fontWeight={500}
                           >
                             {row.memberName}
-                          </Link>
+                          </GuardedLink>
                         ) : (
                           <Typography fontWeight={500}>{row.memberName}</Typography>
                         )}

@@ -1,8 +1,6 @@
 import { useState, useCallback, useMemo, memo } from 'react';
-import { Link as RouterLink } from 'react-router-dom';
 import {
   Box,
-  Link,
   Table,
   TableBody,
   TableCell,
@@ -12,6 +10,7 @@ import {
   Stack,
 } from '@mui/material';
 import SkillChip from '@/shared/ui/SkillChip';
+import GuardedLink from '@/shared/ui/GuardedLink';
 import ScheduleCellComponent from './ScheduleCell';
 import AssignmentPopover from './AssignmentPopover';
 import { MEMBER_CATEGORIES } from '@/shared/constants/categories';
@@ -235,15 +234,14 @@ const MemberRow = memo(function MemberRow({ row, months, onCellClick }: MemberRo
         }}
       >
         {row.memberId ? (
-          <Link
-            component={RouterLink}
+          <GuardedLink
             to={`/members/${row.memberId}`}
             underline="hover"
             color="inherit"
             fontWeight={500}
           >
             {row.memberName}
-          </Link>
+          </GuardedLink>
         ) : (
           row.memberName
         )}

@@ -24,6 +24,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import SaveIcon from '@mui/icons-material/Save';
 import PageHeader from '@/shared/ui/PageHeader';
 import LoadingOverlay from '@/shared/ui/LoadingOverlay';
+import { useRegisterUnsavedChanges, useUnsavedChanges } from '@/shared/hooks/useUnsavedChanges';
 import {
   useMember,
   useMemberUpcomingSchedule,
@@ -38,6 +39,10 @@ import type { Skill } from '../types';
 import MemberUpcomingScheduleTable from './MemberUpcomingScheduleTable';
 import { buildMonthStartRange, getCurrentMonthStart } from '@/shared/lib/months';
 
+function getSkillIds(skills: Skill[]) {
+  return skills.map((skill) => skill.id).sort();
+}
+
 export default function MemberDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -46,6 +51,7 @@ export default function MemberDetail() {
   const updateMemberMutation = useUpdateMember();
   const updateMemberSkills = useUpdateMemberSkills();
   const deleteMemberMutation = useDeleteMember();
+  const { confirmIfNeeded } = useUnsavedChanges();
   const scheduleMonths = useMemo(() => buildMonthStartRange(getCurrentMonthStart(), 6), []);
   const { data: scheduleRows = [] } = useMemberUpcomingSchedule(id!, scheduleMonths);
 
@@ -58,9 +64,36 @@ export default function MemberDetail() {
     joinDate: string;
   } | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const baseForm = {
+    name: member?.name ?? '',
+    category: member?.category ?? ('社員' as MemberCategory),
+    company: member?.company ?? ('ブーストコンサルティング' as MemberCompany),
+    selectedSkills: member?.member_skills.map((ms) => ms.skills) ?? [],
+    note: member?.note ?? '',
+    joinDate: member?.join_date ?? '',
+  } satisfies {
+    name: string;
+    category: MemberCategory;
+    company: MemberCompany;
+    selectedSkills: Skill[];
+    note: string;
+    joinDate: string;
+  };
+  const form = draft ?? baseForm;
+  const isDirty =
+    Boolean(member) &&
+    draft !== null &&
+    (form.name !== baseForm.name ||
+      form.category !== baseForm.category ||
+      form.company !== baseForm.company ||
+      form.note !== baseForm.note ||
+      form.joinDate !== baseForm.joinDate ||
+      JSON.stringify(getSkillIds(form.selectedSkills)) !==
+        JSON.stringify(getSkillIds(baseForm.selectedSkills)));
+  useRegisterUnsavedChanges(isDirty);
 
   const handleSave = async () => {
-    if (!form || !form.name.trim() || !id) return;
+    if (!member || !form.name.trim() || !id) return;
 
     try {
       await updateMemberMutation.mutateAsync({
@@ -77,6 +110,7 @@ export default function MemberDetail() {
         memberId: id,
         skillIds: form.selectedSkills.map((skill) => skill.id),
       });
+      setDraft(null);
     } catch {
       // エラーは TanStack Query が管理
     }
@@ -93,24 +127,6 @@ export default function MemberDetail() {
   };
 
   if (isLoading || !member) return <LoadingOverlay />;
-
-  const form =
-    draft ??
-    ({
-      name: member.name,
-      category: member.category,
-      company: member.company,
-      selectedSkills: member.member_skills.map((ms) => ms.skills),
-      note: member.note ?? '',
-      joinDate: member.join_date ?? '',
-    } satisfies {
-      name: string;
-      category: MemberCategory;
-      company: MemberCompany;
-      selectedSkills: Skill[];
-      note: string;
-      joinDate: string;
-    });
 
   const updateDraft = (
     updates: Partial<{
@@ -134,7 +150,10 @@ export default function MemberDetail() {
     <Box sx={{ p: 3 }}>
       <Button
         startIcon={<ArrowBackIcon />}
-        onClick={() => navigate('/members')}
+        onClick={() => {
+          if (!confirmIfNeeded()) return;
+          navigate('/members');
+        }}
         sx={{ mb: 2, color: 'text.secondary' }}
       >
         メンバー一覧に戻る

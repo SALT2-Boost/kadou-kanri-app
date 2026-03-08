@@ -1,6 +1,18 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
+import { UnsavedChangesProvider } from '@/shared/hooks/useUnsavedChanges';
 import MasterSettingsPage from './MasterSettingsPage';
+
+function renderPage() {
+  return render(
+    <MemoryRouter>
+      <UnsavedChangesProvider>
+        <MasterSettingsPage />
+      </UnsavedChangesProvider>
+    </MemoryRouter>,
+  );
+}
 
 const createSkill = {
   mutateAsync: vi.fn(),
@@ -80,7 +92,7 @@ describe('MasterSettingsPage', () => {
   });
 
   it('PJカテゴリとスキルのマスタ一覧を表示する', () => {
-    render(<MasterSettingsPage />);
+    renderPage();
 
     expect(screen.getByText('マスタ設定')).toBeInTheDocument();
     expect(screen.getByText('PJカテゴリ')).toBeInTheDocument();
@@ -94,7 +106,7 @@ describe('MasterSettingsPage', () => {
   });
 
   it('ロール候補を追加できる', async () => {
-    render(<MasterSettingsPage />);
+    renderPage();
 
     fireEvent.click(screen.getByRole('button', { name: 'ロール追加' }));
     fireEvent.change(screen.getByLabelText('名前'), { target: { value: 'QA' } });
@@ -106,7 +118,7 @@ describe('MasterSettingsPage', () => {
   });
 
   it('スキルを追加できる', async () => {
-    render(<MasterSettingsPage />);
+    renderPage();
 
     fireEvent.click(screen.getByRole('button', { name: 'スキル追加' }));
     fireEvent.change(screen.getByLabelText('名前'), { target: { value: 'AIE' } });
@@ -118,7 +130,7 @@ describe('MasterSettingsPage', () => {
   });
 
   it('PJカテゴリを追加できる', async () => {
-    render(<MasterSettingsPage />);
+    renderPage();
 
     fireEvent.click(screen.getByRole('button', { name: 'カテゴリ追加' }));
     fireEvent.change(screen.getByLabelText('名前'), { target: { value: '新カテゴリ' } });
@@ -130,7 +142,7 @@ describe('MasterSettingsPage', () => {
   });
 
   it('既存マスタを編集できる', async () => {
-    render(<MasterSettingsPage />);
+    renderPage();
 
     const skillRow = screen.getByText('DS').closest('li');
     fireEvent.click(within(skillRow as HTMLElement).getByRole('button', { name: '編集' }));

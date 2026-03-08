@@ -1,6 +1,4 @@
-import { Link as RouterLink } from 'react-router-dom';
 import {
-  Link,
   Paper,
   Table,
   TableBody,
@@ -10,6 +8,7 @@ import {
   TableRow,
   Typography,
 } from '@mui/material';
+import GuardedLink from '@/shared/ui/GuardedLink';
 import type { MemberScheduleRow } from '../types';
 
 interface MemberUpcomingScheduleTableProps {
@@ -61,15 +60,14 @@ export default function MemberUpcomingScheduleTable({
             rows.map((row) => (
               <TableRow key={row.projectId} hover>
                 <TableCell>
-                  <Link
-                    component={RouterLink}
+                  <GuardedLink
                     to={`/projects/${row.projectId}`}
                     underline="hover"
                     color="inherit"
                     fontWeight={500}
                   >
                     {row.projectName}
-                  </Link>
+                  </GuardedLink>
                 </TableCell>
                 {months.map((month) => (
                   <TableCell key={month} align="center">
