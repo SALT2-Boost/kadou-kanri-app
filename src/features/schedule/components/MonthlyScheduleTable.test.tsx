@@ -57,9 +57,16 @@ describe('MonthlyScheduleTable', () => {
 
     const nameHeader = screen.getByText('メンバー名').closest('th');
     const skillsHeader = screen.getByText('スキル').closest('th');
+    const projectHeader = screen
+      .getByText('非常に長い案件名でも見切れずに表示したい案件A')
+      .closest('th');
+    const groupHeader = screen.getByText('社員').closest('td');
 
     expect(nameHeader).toHaveStyle({ position: 'sticky', left: '0px' });
     expect(skillsHeader).toHaveStyle({ position: 'sticky', left: '220px' });
+    expect(nameHeader).toHaveStyle({ zIndex: '4' });
+    expect(projectHeader).toHaveStyle({ zIndex: '1' });
+    expect(groupHeader).toHaveStyle({ position: 'sticky', left: '0px' });
     expect(screen.queryByText('role')).not.toBeInTheDocument();
   });
 });

@@ -23,6 +23,7 @@ interface MonthlyScheduleTableProps {
 
 const NAME_COLUMN_WIDTH = 220;
 const SKILLS_COLUMN_WIDTH = 260;
+const FIXED_COLUMNS_WIDTH = NAME_COLUMN_WIDTH + SKILLS_COLUMN_WIDTH;
 const STICKY_NAME_LEFT = 0;
 const STICKY_SKILLS_LEFT = NAME_COLUMN_WIDTH;
 const PROJECT_COLUMN_WIDTH = 150;
@@ -30,16 +31,19 @@ const TOTAL_COLUMN_WIDTH = 84;
 const STICKY_BG = 'background.paper';
 const UNCONFIRMED_ROW_BG = 'rgba(255, 152, 0, 0.04)';
 const UNCONFIRMED_STICKY_BG = 'rgba(255, 152, 0, 0.06)';
+const HEADER_STICKY_Z_INDEX = 4;
+const BODY_STICKY_Z_INDEX = 2;
+const GROUP_STICKY_Z_INDEX = 3;
 
 function formatPercentage(value: number | undefined): string {
   return value && value > 0 ? `${value}%` : '';
 }
 
-function getStickyCellStyles(left: number, highlighted: boolean) {
+function getStickyCellStyles(left: number, highlighted: boolean, zIndex: number) {
   return {
     position: 'sticky' as const,
     left,
-    zIndex: 1,
+    zIndex,
     bgcolor: highlighted ? UNCONFIRMED_STICKY_BG : STICKY_BG,
     boxSizing: 'border-box' as const,
   };
@@ -113,7 +117,7 @@ export default function MonthlyScheduleTable({ rows, projects }: MonthlySchedule
             <TableRow>
               <TableCell
                 sx={{
-                  ...getStickyCellStyles(STICKY_NAME_LEFT, false),
+                  ...getStickyCellStyles(STICKY_NAME_LEFT, false, HEADER_STICKY_Z_INDEX),
                   ...getFixedColumnStyles(NAME_COLUMN_WIDTH),
                   fontWeight: 'bold',
                   borderRight: '1px solid',
@@ -124,7 +128,7 @@ export default function MonthlyScheduleTable({ rows, projects }: MonthlySchedule
               </TableCell>
               <TableCell
                 sx={{
-                  ...getStickyCellStyles(STICKY_SKILLS_LEFT, false),
+                  ...getStickyCellStyles(STICKY_SKILLS_LEFT, false, HEADER_STICKY_Z_INDEX),
                   ...getFixedColumnStyles(SKILLS_COLUMN_WIDTH),
                   fontWeight: 'bold',
                   borderRight: '2px solid',
@@ -144,6 +148,7 @@ export default function MonthlyScheduleTable({ rows, projects }: MonthlySchedule
                     borderRight: index === projects.length - 1 ? '1px solid' : undefined,
                     borderRightColor: index === projects.length - 1 ? 'divider' : undefined,
                     bgcolor: STICKY_BG,
+                    zIndex: 1,
                     px: 1,
                   }}
                 >
@@ -171,7 +176,7 @@ export default function MonthlyScheduleTable({ rows, projects }: MonthlySchedule
                 sx={{
                   position: 'sticky',
                   right: 0,
-                  zIndex: 3,
+                  zIndex: HEADER_STICKY_Z_INDEX,
                   minWidth: TOTAL_COLUMN_WIDTH,
                   fontWeight: 'bold',
                   bgcolor: 'grey.100',
@@ -204,13 +209,30 @@ interface MonthlyGroupRowsProps {
 
 function MonthlyGroupRows({ group, projects }: MonthlyGroupRowsProps) {
   const totalColumns = 3 + projects.length;
+  const scrollingColumns = totalColumns - 2;
 
   return (
     <>
       <TableRow>
-        <TableCell colSpan={totalColumns} sx={{ bgcolor: 'grey.200', fontWeight: 'bold', py: 0.5 }}>
+        <TableCell
+          colSpan={2}
+          sx={{
+            position: 'sticky',
+            left: 0,
+            zIndex: GROUP_STICKY_Z_INDEX,
+            width: FIXED_COLUMNS_WIDTH,
+            minWidth: FIXED_COLUMNS_WIDTH,
+            maxWidth: FIXED_COLUMNS_WIDTH,
+            bgcolor: 'grey.200',
+            fontWeight: 'bold',
+            py: 0.5,
+            borderRight: '2px solid',
+            borderRightColor: 'divider',
+          }}
+        >
           {group.category}
         </TableCell>
+        <TableCell colSpan={scrollingColumns} sx={{ bgcolor: 'grey.200', py: 0.5 }} />
       </TableRow>
       {group.members.map((row) => {
         const isUnconfirmed = row.isUnconfirmed;
@@ -231,7 +253,7 @@ function MonthlyGroupRows({ group, projects }: MonthlyGroupRowsProps) {
           >
             <TableCell
               sx={{
-                ...getStickyCellStyles(STICKY_NAME_LEFT, isUnconfirmed),
+                ...getStickyCellStyles(STICKY_NAME_LEFT, isUnconfirmed, BODY_STICKY_Z_INDEX),
                 ...getFixedColumnStyles(NAME_COLUMN_WIDTH),
                 whiteSpace: 'nowrap',
                 borderRight: '1px solid',
@@ -254,7 +276,7 @@ function MonthlyGroupRows({ group, projects }: MonthlyGroupRowsProps) {
             </TableCell>
             <TableCell
               sx={{
-                ...getStickyCellStyles(STICKY_SKILLS_LEFT, isUnconfirmed),
+                ...getStickyCellStyles(STICKY_SKILLS_LEFT, isUnconfirmed, BODY_STICKY_Z_INDEX),
                 ...getFixedColumnStyles(SKILLS_COLUMN_WIDTH),
                 borderRight: '2px solid',
                 borderRightColor: 'divider',
@@ -291,7 +313,7 @@ function MonthlyGroupRows({ group, projects }: MonthlyGroupRowsProps) {
               sx={{
                 position: 'sticky',
                 right: 0,
-                zIndex: 1,
+                zIndex: BODY_STICKY_Z_INDEX,
                 py: 0.75,
                 bgcolor: isUnconfirmed ? UNCONFIRMED_STICKY_BG : 'grey.50',
                 borderLeft: '2px solid',
