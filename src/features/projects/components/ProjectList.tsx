@@ -4,7 +4,11 @@ import {
   Box,
   Button,
   Chip,
+  FormControl,
+  InputLabel,
+  MenuItem,
   Stack,
+  Select,
   Table,
   TableBody,
   TableCell,
@@ -22,6 +26,12 @@ import ProjectForm from './ProjectForm';
 import type { Project } from '../types';
 
 const STATUS_FILTERS = ['確定', '提案済', '提案予定'] as const;
+const SORT_OPTIONS = {
+  status: 'ステータス順',
+  startAsc: '開始時期が早い順',
+  startDesc: '開始時期が遅い順',
+} as const;
+type SortOption = keyof typeof SORT_OPTIONS;
 
 const STATUS_ORDER: Record<string, number> = {
   確定: 0,
@@ -29,8 +39,14 @@ const STATUS_ORDER: Record<string, number> = {
   提案予定: 2,
 };
 
-function sortProjects(projects: Project[]): Project[] {
+function sortProjects(projects: Project[], sortOption: SortOption): Project[] {
   return [...projects].sort((a, b) => {
+    if (sortOption === 'startAsc') {
+      return a.start_month.localeCompare(b.start_month) || a.name.localeCompare(b.name, 'ja');
+    }
+    if (sortOption === 'startDesc') {
+      return b.start_month.localeCompare(a.start_month) || a.name.localeCompare(b.name, 'ja');
+    }
     const statusDiff = (STATUS_ORDER[a.status] ?? 9) - (STATUS_ORDER[b.status] ?? 9);
     if (statusDiff !== 0) return statusDiff;
     const startDiff = a.start_month.localeCompare(b.start_month);
@@ -68,6 +84,8 @@ export default function ProjectList() {
   const { data: projects, isLoading } = useProjects();
   const [activeStatuses, setActiveStatuses] = useState<Set<string>>(new Set(STATUS_FILTERS));
   const [formOpen, setFormOpen] = useState(false);
+  const [sortOption, setSortOption] = useState<SortOption>('status');
+  const sortSelectLabelId = 'project-list-sort-label';
 
   const toggleStatus = (status: string) => {
     setActiveStatuses((prev) => {
@@ -84,8 +102,8 @@ export default function ProjectList() {
   const filteredProjects = useMemo(() => {
     if (!projects) return [];
     const filtered = projects.filter((p) => activeStatuses.has(p.status));
-    return sortProjects(filtered);
-  }, [projects, activeStatuses]);
+    return sortProjects(filtered, sortOption);
+  }, [projects, activeStatuses, sortOption]);
 
   if (isLoading) return <LoadingOverlay />;
 
@@ -102,16 +120,38 @@ export default function ProjectList() {
       </Stack>
 
       {/* Status Filters */}
-      <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
-        {STATUS_FILTERS.map((status) => (
-          <Chip
-            key={status}
-            label={status}
-            variant={activeStatuses.has(status) ? 'filled' : 'outlined'}
-            color={activeStatuses.has(status) ? 'primary' : 'default'}
-            onClick={() => toggleStatus(status)}
-          />
-        ))}
+      <Stack
+        direction={{ xs: 'column', md: 'row' }}
+        spacing={2}
+        alignItems={{ xs: 'stretch', md: 'center' }}
+        sx={{ mb: 2 }}
+      >
+        <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+          {STATUS_FILTERS.map((status) => (
+            <Chip
+              key={status}
+              label={status}
+              variant={activeStatuses.has(status) ? 'filled' : 'outlined'}
+              color={activeStatuses.has(status) ? 'primary' : 'default'}
+              onClick={() => toggleStatus(status)}
+            />
+          ))}
+        </Stack>
+        <FormControl size="small" sx={{ minWidth: 220 }}>
+          <InputLabel id={sortSelectLabelId}>並び順</InputLabel>
+          <Select
+            labelId={sortSelectLabelId}
+            label="並び順"
+            value={sortOption}
+            onChange={(event) => setSortOption(event.target.value as SortOption)}
+          >
+            {Object.entries(SORT_OPTIONS).map(([value, label]) => (
+              <MenuItem key={value} value={value}>
+                {label}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
       </Stack>
 
       {/* Projects Table */}
@@ -177,7 +217,7 @@ export default function ProjectList() {
       </TableContainer>
 
       {/* Create Form Dialog */}
-      <ProjectForm open={formOpen} onClose={() => setFormOpen(false)} />
+      {formOpen ? <ProjectForm open={formOpen} onClose={() => setFormOpen(false)} /> : null}
     </Box>
   );
 }

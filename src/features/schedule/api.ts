@@ -16,6 +16,7 @@ export interface ProjectMemberWithAssignments {
   projects: {
     id: string;
     name: string;
+    status: '確定' | '提案済' | '提案予定';
   };
   members: {
     id: string;
@@ -79,7 +80,7 @@ async function fetchProjectMembersWithAssignments(
   const { data, error } = await supabase
     .from('project_members')
     .select(
-      'id, project_id, member_id, name, role, projects(id, name), members(id, name, category), project_member_skills(skill_id, skills(id, name)), assignments!inner(id, project_member_id, month, percentage, note, created_at, updated_at)',
+      'id, project_id, member_id, name, role, projects(id, name, status), members(id, name, category), project_member_skills(skill_id, skills(id, name)), assignments!inner(id, project_member_id, month, percentage, note, created_at, updated_at)',
     )
     .gte('assignments.month', startMonth)
     .lte('assignments.month', endMonth)

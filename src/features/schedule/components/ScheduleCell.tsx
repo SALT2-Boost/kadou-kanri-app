@@ -1,6 +1,7 @@
 import { memo } from 'react';
 import { TableCell } from '@mui/material';
 import type { ScheduleCell as ScheduleCellType } from '../types';
+import UtilizationSummary from './UtilizationSummary';
 
 interface ScheduleCellProps {
   cell: ScheduleCellType | undefined;
@@ -29,6 +30,7 @@ const ScheduleCellComponent = memo(function ScheduleCellComponent({
   onClick,
 }: ScheduleCellProps) {
   const totalPercentage = cell?.totalPercentage;
+  const confirmedPercentage = cell?.confirmedPercentage ?? totalPercentage ?? 0;
   const hasData = totalPercentage != null && totalPercentage > 0;
   const styles = getCellStyles(totalPercentage);
 
@@ -50,7 +52,14 @@ const ScheduleCellComponent = memo(function ScheduleCellComponent({
         borderRightColor: isLastMonth ? 'divider' : undefined,
       }}
     >
-      {hasData ? `${totalPercentage}%` : ''}
+      {hasData ? (
+        <UtilizationSummary
+          confirmedPercentage={confirmedPercentage}
+          totalPercentage={totalPercentage}
+        />
+      ) : (
+        ''
+      )}
     </TableCell>
   );
 });

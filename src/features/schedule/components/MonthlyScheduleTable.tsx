@@ -17,6 +17,7 @@ import {
 import SkillChip from '@/shared/ui/SkillChip';
 import { MEMBER_CATEGORIES } from '@/shared/constants/categories';
 import type { MonthlyViewProject, MonthlyViewRow } from '../types';
+import UtilizationSummary from './UtilizationSummary';
 
 interface MonthlyScheduleTableProps {
   rows: MonthlyViewRow[];
@@ -36,10 +37,6 @@ const UNCONFIRMED_STICKY_BG = 'rgba(255, 152, 0, 0.06)';
 const HEADER_STICKY_Z_INDEX = 4;
 const BODY_STICKY_Z_INDEX = 2;
 const GROUP_STICKY_Z_INDEX = 3;
-
-function formatPercentage(value: number | undefined): string {
-  return value && value > 0 ? `${value}%` : '';
-}
 
 function getStickyCellStyles(left: number, highlighted: boolean, zIndex: number) {
   return {
@@ -314,20 +311,30 @@ function MonthlyGroupRows({ group, projects }: MonthlyGroupRowsProps) {
             </TableCell>
             {projects.map((project, index) => {
               const pct = row.projects[project.id];
+              const isTentativeProject = project.status !== '確定';
               return (
                 <TableCell
                   key={project.id}
                   align="center"
                   sx={{
                     py: 0.75,
+                    bgcolor: isTentativeProject
+                      ? isUnconfirmed
+                        ? 'grey.200'
+                        : 'grey.100'
+                      : undefined,
                     borderLeft: '1px solid',
                     borderLeftColor: 'divider',
                     borderRight: index === projects.length - 1 ? '1px solid' : undefined,
                     borderRightColor: index === projects.length - 1 ? 'divider' : undefined,
                   }}
                 >
-                  <Typography variant="body2" fontWeight={pct && pct >= 100 ? 700 : 400}>
-                    {formatPercentage(pct)}
+                  <Typography
+                    variant="body2"
+                    fontWeight={pct && pct >= 100 ? 700 : 400}
+                    color={isTentativeProject ? 'text.secondary' : 'text.primary'}
+                  >
+                    {pct && pct > 0 ? `${pct}%` : ''}
                   </Typography>
                 </TableCell>
               );
@@ -344,13 +351,10 @@ function MonthlyGroupRows({ group, projects }: MonthlyGroupRowsProps) {
                 borderLeftColor: 'divider',
               }}
             >
-              <Typography
-                variant="body2"
-                fontWeight={row.totalPercentage > 100 ? 'bold' : 600}
-                color={row.totalPercentage > 100 ? 'error' : 'text.primary'}
-              >
-                {formatPercentage(row.totalPercentage)}
-              </Typography>
+              <UtilizationSummary
+                confirmedPercentage={row.confirmedTotalPercentage}
+                totalPercentage={row.totalPercentage}
+              />
             </TableCell>
           </TableRow>
         );

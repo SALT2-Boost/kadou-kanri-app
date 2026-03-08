@@ -16,11 +16,13 @@ const rows: ScheduleRow[] = [
     skills: ['TypeScript'],
     months: {
       '2026-03-01': {
+        confirmedPercentage: 80,
         totalPercentage: 80,
         assignments: [
           {
             projectId: 'p-1',
             projectName: '案件A',
+            projectStatus: '確定',
             percentage: 80,
           },
         ],

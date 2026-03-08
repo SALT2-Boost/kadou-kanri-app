@@ -1,3 +1,5 @@
+export type ScheduleProjectStatus = '確定' | '提案済' | '提案予定';
+
 export interface ScheduleBaseRow {
   rowId: string;
   memberId: string | null;
@@ -12,20 +14,24 @@ export interface ScheduleRow extends ScheduleBaseRow {
 }
 
 export interface ScheduleCell {
+  confirmedPercentage: number;
   totalPercentage: number;
   assignments: Array<{
     projectId: string;
     projectName: string;
+    projectStatus: ScheduleProjectStatus;
     percentage: number;
   }>;
 }
 
 export interface MonthlyViewRow extends ScheduleBaseRow {
   projects: Record<string, number>;
+  confirmedTotalPercentage: number;
   totalPercentage: number;
 }
 
 export interface MonthlyViewProject {
   id: string;
   name: string;
+  status: ScheduleProjectStatus;
 }

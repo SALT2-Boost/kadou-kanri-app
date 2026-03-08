@@ -53,14 +53,19 @@ export function buildPeriodRows(
 
       for (const assignment of projectMember.assignments) {
         const cell = existing.months[assignment.month] ?? {
+          confirmedPercentage: 0,
           totalPercentage: 0,
           assignments: [],
         };
-        cell.totalPercentage += assignment.percentage ?? 0;
+        const percentage = assignment.percentage ?? 0;
+        const isConfirmedProject = projectMember.projects.status === '確定';
+        cell.confirmedPercentage += isConfirmedProject ? percentage : 0;
+        cell.totalPercentage += percentage;
         cell.assignments.push({
           projectId: projectMember.project_id,
           projectName: projectMember.projects.name,
-          percentage: assignment.percentage ?? 0,
+          projectStatus: projectMember.projects.status,
+          percentage,
         });
         existing.months[assignment.month] = cell;
       }
@@ -80,13 +85,17 @@ export function buildPeriodRows(
     };
 
     for (const assignment of projectMember.assignments) {
+      const percentage = assignment.percentage ?? 0;
+      const isConfirmedProject = projectMember.projects.status === '確定';
       row.months[assignment.month] = {
-        totalPercentage: assignment.percentage ?? 0,
+        confirmedPercentage: isConfirmedProject ? percentage : 0,
+        totalPercentage: percentage,
         assignments: [
           {
             projectId: projectMember.project_id,
             projectName: projectMember.projects.name,
-            percentage: assignment.percentage ?? 0,
+            projectStatus: projectMember.projects.status,
+            percentage,
           },
         ],
       };
@@ -114,6 +123,7 @@ export function transformToMonthlyView(
       isUnconfirmed: false,
       skills: toSortedUnique(member.skills.map((skill) => skill.name)),
       projects: {},
+      confirmedTotalPercentage: 0,
       totalPercentage: 0,
     });
   }
@@ -122,6 +132,7 @@ export function transformToMonthlyView(
     projectMap.set(projectMember.project_id, {
       id: projectMember.project_id,
       name: projectMember.projects.name,
+      status: projectMember.projects.status,
     });
 
     const skillNames = projectMember.project_member_skills.map((link) => link.skills.name);
@@ -129,6 +140,7 @@ export function transformToMonthlyView(
       (sum, assignment) => sum + (assignment.percentage ?? 0),
       0,
     );
+    const confirmedTotal = projectMember.projects.status === '確定' ? total : 0;
     const treatAsUnconfirmed = isUnconfirmedProjectMember(projectMember);
 
     if (!treatAsUnconfirmed && projectMember.member_id) {
@@ -143,12 +155,14 @@ export function transformToMonthlyView(
           isUnconfirmed: false,
           skills: [],
           projects: {},
+          confirmedTotalPercentage: 0,
           totalPercentage: 0,
         } satisfies MonthlyViewRow);
 
       existing.skills = toSortedUnique([...existing.skills, ...skillNames]);
       existing.projects[projectMember.project_id] =
         (existing.projects[projectMember.project_id] ?? 0) + total;
+      existing.confirmedTotalPercentage += confirmedTotal;
       existing.totalPercentage += total;
 
       rows.set(key, existing);
@@ -165,6 +179,7 @@ export function transformToMonthlyView(
       projects: {
         [projectMember.project_id]: total,
       },
+      confirmedTotalPercentage: confirmedTotal,
       totalPercentage: total,
     });
   }

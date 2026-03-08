@@ -5,7 +5,8 @@ import MonthlyScheduleTable from './MonthlyScheduleTable';
 import type { MonthlyViewProject, MonthlyViewRow } from '../types';
 
 const projects: MonthlyViewProject[] = [
-  { id: 'p-1', name: '非常に長い案件名でも見切れずに表示したい案件A' },
+  { id: 'p-1', name: '非常に長い案件名でも見切れずに表示したい案件A', status: '確定' },
+  { id: 'p-2', name: '提案中案件B', status: '提案済' },
 ];
 
 const confirmedRow: MonthlyViewRow = {
@@ -15,8 +16,9 @@ const confirmedRow: MonthlyViewRow = {
   category: '社員',
   isUnconfirmed: false,
   skills: ['TypeScript'],
-  projects: { 'p-1': 80 },
-  totalPercentage: 80,
+  projects: { 'p-1': 80, 'p-2': 20 },
+  confirmedTotalPercentage: 80,
+  totalPercentage: 100,
 };
 
 const unconfirmedRow: MonthlyViewRow = {
@@ -26,8 +28,9 @@ const unconfirmedRow: MonthlyViewRow = {
   category: '未定枠',
   isUnconfirmed: true,
   skills: ['SWE'],
-  projects: { 'p-1': 60 },
-  totalPercentage: 60,
+  projects: { 'p-1': 60, 'p-2': 40 },
+  confirmedTotalPercentage: 60,
+  totalPercentage: 100,
 };
 
 describe('MonthlyScheduleTable', () => {
@@ -63,6 +66,18 @@ describe('MonthlyScheduleTable', () => {
     expect(screen.getByText('合計')).toBeInTheDocument();
     expect(screen.getByText('非常に長い案件名でも見切れずに表示したい案件A')).toBeInTheDocument();
     expect(screen.getAllByText('80%')[0]).toBeInTheDocument();
+  });
+
+  it('合計は confirmed と total を分け、提案中案件セルはグレー背景にする', () => {
+    render(
+      <MemoryRouter>
+        <MonthlyScheduleTable rows={[confirmedRow]} projects={projects} />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByText('(100%)')).toBeInTheDocument();
+    const tentativeCell = screen.getByText('20%').closest('td');
+    expect(tentativeCell).toHaveStyle({ backgroundColor: 'rgb(245, 245, 245)' });
   });
 
   it('member 集約ビューでは role 列を表示せず、左側の人情報列を sticky で固定する', () => {

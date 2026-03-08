@@ -23,7 +23,7 @@ describe('ScheduleCell', () => {
   it('totalPercentage が 0 の場合は空表示', () => {
     renderInTable(
       <ScheduleCellComponent
-        cell={{ totalPercentage: 0, assignments: [] }}
+        cell={{ confirmedPercentage: 0, totalPercentage: 0, assignments: [] }}
         onClick={vi.fn()}
       />,
     );
@@ -33,7 +33,7 @@ describe('ScheduleCell', () => {
   it('稼働%を表示する', () => {
     renderInTable(
       <ScheduleCellComponent
-        cell={{ totalPercentage: 80, assignments: [] }}
+        cell={{ confirmedPercentage: 80, totalPercentage: 80, assignments: [] }}
         onClick={vi.fn()}
       />,
     );
@@ -43,10 +43,22 @@ describe('ScheduleCell', () => {
   it('100%超を表示する', () => {
     renderInTable(
       <ScheduleCellComponent
-        cell={{ totalPercentage: 120, assignments: [] }}
+        cell={{ confirmedPercentage: 120, totalPercentage: 120, assignments: [] }}
         onClick={vi.fn()}
       />,
     );
     expect(screen.getByRole('cell').textContent).toBe('120%');
+  });
+
+  it('提案中案件を含む場合は confirmed と total を分けて表示する', () => {
+    renderInTable(
+      <ScheduleCellComponent
+        cell={{ confirmedPercentage: 50, totalPercentage: 80, assignments: [] }}
+        month="2026-03-01"
+        onClick={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByRole('cell').textContent).toBe('50%(80%)');
   });
 });

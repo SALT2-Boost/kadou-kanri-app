@@ -26,6 +26,7 @@ const makeProjectMember = (
   projects: {
     id: 'p-1',
     name: '案件A',
+    status: '確定',
   },
   members: {
     id: 'm-1',
@@ -70,12 +71,13 @@ describe('transformToMonthlyView', () => {
       ],
     );
 
-    expect(result.projects).toEqual([{ id: 'p-1', name: '案件A' }]);
+    expect(result.projects).toEqual([{ id: 'p-1', name: '案件A', status: '確定' }]);
     expect(result.rows[0]).toMatchObject({
       rowId: 'm-1',
       memberId: 'm-1',
       memberName: '田中',
       isUnconfirmed: false,
+      confirmedTotalPercentage: 50,
       totalPercentage: 50,
     });
     expect(result.rows[0].skills.sort()).toEqual(['React', 'TypeScript']);
@@ -122,6 +124,7 @@ describe('transformToMonthlyView', () => {
       memberName: '未定要員(PM)',
       isUnconfirmed: true,
       category: '未定枠',
+      confirmedTotalPercentage: 80,
       totalPercentage: 80,
     });
     expect(result.rows[0].skills).toEqual(['進行管理']);
@@ -162,6 +165,42 @@ describe('transformToMonthlyView', () => {
       category: '未定枠',
     });
     expect(result.rows[0].skills).toEqual(['AIE']);
+  });
+
+  it('提案中PJは total にのみ集計し、confirmed と分ける', () => {
+    const result = transformToMonthlyView(
+      [makeMember()],
+      [
+        makeProjectMember({
+          project_id: 'p-2',
+          projects: {
+            id: 'p-2',
+            name: '案件B',
+            status: '提案済',
+          },
+          assignments: [
+            {
+              id: 'a-9',
+              project_member_id: 'pm-1',
+              month: '2026-03-01',
+              percentage: 30,
+              note: null,
+              created_at: '2026-03-01T00:00:00Z',
+              updated_at: '2026-03-01T00:00:00Z',
+            },
+          ],
+        }),
+      ],
+    );
+
+    expect(result.rows[0]).toMatchObject({
+      confirmedTotalPercentage: 0,
+      totalPercentage: 30,
+    });
+    expect(result.projects[0]).toMatchObject({
+      id: 'p-2',
+      status: '提案済',
+    });
   });
 });
 
@@ -215,6 +254,7 @@ describe('buildPeriodRows', () => {
 
     expect(rows).toHaveLength(2);
     expect(rows.find((row) => row.rowId === 'm-1')?.months['2026-03-01']).toMatchObject({
+      confirmedPercentage: 50,
       totalPercentage: 50,
     });
     expect(rows.find((row) => row.rowId === 'pm-2')).toMatchObject({
@@ -249,6 +289,38 @@ describe('buildPeriodRows', () => {
       memberName: 'SWE要員',
       isUnconfirmed: true,
       category: '未定枠',
+    });
+  });
+
+  it('期間ビューで提案中PJは括弧表示用に total だけ持つ', () => {
+    const rows = buildPeriodRows(
+      [makeMember()],
+      [
+        makeProjectMember({
+          project_id: 'p-2',
+          projects: {
+            id: 'p-2',
+            name: '案件B',
+            status: '提案予定',
+          },
+          assignments: [
+            {
+              id: 'a-10',
+              project_member_id: 'pm-1',
+              month: '2026-03-01',
+              percentage: 20,
+              note: null,
+              created_at: '2026-03-01T00:00:00Z',
+              updated_at: '2026-03-01T00:00:00Z',
+            },
+          ],
+        }),
+      ],
+    );
+
+    expect(rows[0].months['2026-03-01']).toMatchObject({
+      confirmedPercentage: 0,
+      totalPercentage: 20,
     });
   });
 });
