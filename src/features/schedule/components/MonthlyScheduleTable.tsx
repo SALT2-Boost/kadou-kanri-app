@@ -22,11 +22,9 @@ interface MonthlyScheduleTableProps {
 }
 
 const NAME_COLUMN_WIDTH = 220;
-const ROLE_COLUMN_WIDTH = 180;
 const SKILLS_COLUMN_WIDTH = 260;
 const STICKY_NAME_LEFT = 0;
-const STICKY_ROLE_LEFT = NAME_COLUMN_WIDTH;
-const STICKY_SKILLS_LEFT = NAME_COLUMN_WIDTH + ROLE_COLUMN_WIDTH;
+const STICKY_SKILLS_LEFT = NAME_COLUMN_WIDTH;
 const PROJECT_COLUMN_WIDTH = 150;
 const TOTAL_COLUMN_WIDTH = 84;
 const STICKY_BG = 'background.paper';
@@ -94,7 +92,6 @@ export default function MonthlyScheduleTable({ rows, projects }: MonthlySchedule
 
   const tableMinWidth =
     NAME_COLUMN_WIDTH +
-    ROLE_COLUMN_WIDTH +
     SKILLS_COLUMN_WIDTH +
     projects.length * PROJECT_COLUMN_WIDTH +
     TOTAL_COLUMN_WIDTH;
@@ -124,18 +121,6 @@ export default function MonthlyScheduleTable({ rows, projects }: MonthlySchedule
                 }}
               >
                 メンバー名
-              </TableCell>
-              <TableCell
-                sx={{
-                  ...getStickyCellStyles(STICKY_ROLE_LEFT, false),
-                  ...getFixedColumnStyles(ROLE_COLUMN_WIDTH),
-                  fontWeight: 'bold',
-                  whiteSpace: 'nowrap',
-                  borderRight: '1px solid',
-                  borderRightColor: 'divider',
-                }}
-              >
-                role
               </TableCell>
               <TableCell
                 sx={{
@@ -218,7 +203,7 @@ interface MonthlyGroupRowsProps {
 }
 
 function MonthlyGroupRows({ group, projects }: MonthlyGroupRowsProps) {
-  const totalColumns = 4 + projects.length;
+  const totalColumns = 3 + projects.length;
 
   return (
     <>
@@ -266,19 +251,6 @@ function MonthlyGroupRows({ group, projects }: MonthlyGroupRowsProps) {
                   {isUnconfirmed && <Chip label="未確定" size="small" color="warning" />}
                 </Stack>
               </Stack>
-            </TableCell>
-            <TableCell
-              sx={{
-                ...getStickyCellStyles(STICKY_ROLE_LEFT, isUnconfirmed),
-                ...getFixedColumnStyles(ROLE_COLUMN_WIDTH),
-                whiteSpace: 'nowrap',
-                borderRight: '1px solid',
-                borderRightColor: 'divider',
-              }}
-            >
-              <Typography variant="body2" noWrap>
-                {row.role}
-              </Typography>
             </TableCell>
             <TableCell
               sx={{

@@ -12,7 +12,6 @@ const confirmedRow: MonthlyViewRow = {
   memberId: 'm-1',
   memberName: '田中',
   category: '社員',
-  role: 'SWE',
   isUnconfirmed: false,
   skills: ['TypeScript'],
   projects: { 'p-1': 80 },
@@ -24,7 +23,6 @@ const unconfirmedRow: MonthlyViewRow = {
   memberId: null,
   memberName: '未定要員(SWE)',
   category: '未定枠',
-  role: 'SWE',
   isUnconfirmed: true,
   skills: ['SWE'],
   projects: { 'p-1': 60 },
@@ -54,15 +52,14 @@ describe('MonthlyScheduleTable', () => {
     expect(screen.getAllByText('80%')[0]).toBeInTheDocument();
   });
 
-  it('左側の人情報列を sticky で固定する', () => {
+  it('member 集約ビューでは role 列を表示せず、左側の人情報列を sticky で固定する', () => {
     render(<MonthlyScheduleTable rows={[confirmedRow]} projects={projects} />);
 
     const nameHeader = screen.getByText('メンバー名').closest('th');
-    const roleHeader = screen.getByText('role').closest('th');
     const skillsHeader = screen.getByText('スキル').closest('th');
 
     expect(nameHeader).toHaveStyle({ position: 'sticky', left: '0px' });
-    expect(roleHeader).toHaveStyle({ position: 'sticky', left: '220px' });
-    expect(skillsHeader).toHaveStyle({ position: 'sticky', left: '400px' });
+    expect(skillsHeader).toHaveStyle({ position: 'sticky', left: '220px' });
+    expect(screen.queryByText('role')).not.toBeInTheDocument();
   });
 });

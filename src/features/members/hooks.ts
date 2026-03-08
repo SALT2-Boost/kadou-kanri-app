@@ -53,7 +53,6 @@ export function useCreateMember() {
         const optimistic: MemberWithSkills = {
           id: `temp-${Date.now()}`,
           name: newMember.name,
-          role: newMember.role ?? '未設定',
           category: newMember.category,
           note: newMember.note ?? null,
           join_date: newMember.join_date ?? null,

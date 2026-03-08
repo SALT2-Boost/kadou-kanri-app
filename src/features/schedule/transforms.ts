@@ -13,10 +13,6 @@ function toSortedUnique(values: string[]): string[] {
   return Array.from(new Set(values.filter(Boolean))).sort((a, b) => a.localeCompare(b, 'ja'));
 }
 
-function mergeRoles(existing: string, next: string): string {
-  return toSortedUnique([existing, next]).join(' / ');
-}
-
 export function buildPeriodRows(
   members: MemberWithSkills[],
   projectMembers: ProjectMemberWithAssignments[],
@@ -29,7 +25,6 @@ export function buildPeriodRows(
       memberId: member.id,
       memberName: member.name,
       category: member.category,
-      role: member.role,
       isUnconfirmed: false,
       skills: toSortedUnique(member.skills.map((skill) => skill.name)),
       months: {},
@@ -49,13 +44,11 @@ export function buildPeriodRows(
           memberId: key,
           memberName: projectMember.members?.name ?? projectMember.name,
           category: projectMember.members?.category ?? '社員',
-          role: projectMember.role,
           isUnconfirmed: false,
           skills: [],
           months: {},
         } satisfies ScheduleRow);
 
-      existing.role = mergeRoles(existing.role, projectMember.role);
       existing.skills = toSortedUnique([...existing.skills, ...projectSkillNames]);
 
       for (const assignment of projectMember.assignments) {
@@ -81,7 +74,6 @@ export function buildPeriodRows(
       memberId: null,
       memberName: projectMember.name,
       category: '未定枠',
-      role: projectMember.role,
       isUnconfirmed: true,
       skills: toSortedUnique(projectSkillNames),
       months: {},
@@ -119,7 +111,6 @@ export function transformToMonthlyView(
       memberId: member.id,
       memberName: member.name,
       category: member.category,
-      role: member.role,
       isUnconfirmed: false,
       skills: toSortedUnique(member.skills.map((skill) => skill.name)),
       projects: {},
@@ -149,14 +140,12 @@ export function transformToMonthlyView(
           memberId: key,
           memberName: projectMember.members?.name ?? projectMember.name,
           category: projectMember.members?.category ?? '社員',
-          role: projectMember.role,
           isUnconfirmed: false,
           skills: [],
           projects: {},
           totalPercentage: 0,
         } satisfies MonthlyViewRow);
 
-      existing.role = mergeRoles(existing.role, projectMember.role);
       existing.skills = toSortedUnique([...existing.skills, ...skillNames]);
       existing.projects[projectMember.project_id] =
         (existing.projects[projectMember.project_id] ?? 0) + total;
@@ -171,7 +160,6 @@ export function transformToMonthlyView(
       memberId: null,
       memberName: projectMember.name,
       category: '未定枠',
-      role: projectMember.role,
       isUnconfirmed: true,
       skills: toSortedUnique(skillNames),
       projects: {

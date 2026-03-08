@@ -120,7 +120,7 @@ export default function AssignMemberDialog({
     updateDraft({
       selectedMember: member,
       displayName: member?.name ?? '',
-      role: member?.role ?? '',
+      role: '',
       selectedSkills: toSkillOptions(member),
       formError: null,
     });
@@ -258,7 +258,7 @@ export default function AssignMemberDialog({
           )}
 
           <TextField
-            label="role"
+            label="PJ role"
             value={role}
             onChange={(event) => {
               updateDraft({

@@ -20,6 +20,9 @@ interface ScheduleTableProps {
   months: string[];
 }
 
+const NAME_COLUMN_WIDTH = 220;
+const SKILLS_COLUMN_WIDTH = 260;
+
 function formatMonth(month: string): string {
   return month.slice(0, 7).replace('-', '/');
 }
@@ -67,33 +70,30 @@ export default function ScheduleTable({ rows, months }: ScheduleTableProps) {
             <TableRow>
               <TableCell
                 sx={{
-                  minWidth: 120,
+                  width: NAME_COLUMN_WIDTH,
+                  minWidth: NAME_COLUMN_WIDTH,
+                  maxWidth: NAME_COLUMN_WIDTH,
                   position: 'sticky',
                   left: 0,
                   zIndex: 3,
                   bgcolor: 'background.paper',
+                  borderRight: '1px solid',
+                  borderRightColor: 'divider',
                 }}
               >
                 メンバー名
               </TableCell>
               <TableCell
                 sx={{
-                  minWidth: 110,
+                  width: SKILLS_COLUMN_WIDTH,
+                  minWidth: SKILLS_COLUMN_WIDTH,
+                  maxWidth: SKILLS_COLUMN_WIDTH,
                   position: 'sticky',
-                  left: 120,
+                  left: NAME_COLUMN_WIDTH,
                   zIndex: 3,
                   bgcolor: 'background.paper',
-                }}
-              >
-                role
-              </TableCell>
-              <TableCell
-                sx={{
-                  minWidth: 160,
-                  position: 'sticky',
-                  left: 230,
-                  zIndex: 3,
-                  bgcolor: 'background.paper',
+                  borderRight: '2px solid',
+                  borderRightColor: 'divider',
                 }}
               >
                 スキル
@@ -152,15 +152,11 @@ const GroupRows = memo(function GroupRows({
   onCellClick,
 }: GroupRowsProps) {
   const totalColumns = months.length + 2;
-  const adjustedColumns = totalColumns + 1;
 
   return (
     <>
       <TableRow>
-        <TableCell
-          colSpan={adjustedColumns}
-          sx={{ bgcolor: 'grey.200', fontWeight: 'bold', py: 0.5 }}
-        >
+        <TableCell colSpan={totalColumns} sx={{ bgcolor: 'grey.200', fontWeight: 'bold', py: 0.5 }}>
           {category}
         </TableCell>
       </TableRow>
@@ -209,9 +205,14 @@ const MemberRow = memo(function MemberRow({ row, months, onCellClick }: MemberRo
           left: 0,
           bgcolor: isPlaceholder ? 'rgba(255, 152, 0, 0.06)' : 'background.paper',
           zIndex: 1,
+          width: NAME_COLUMN_WIDTH,
+          minWidth: NAME_COLUMN_WIDTH,
+          maxWidth: NAME_COLUMN_WIDTH,
           whiteSpace: 'nowrap',
           fontStyle: isPlaceholder ? 'italic' : 'normal',
           color: isPlaceholder ? 'text.secondary' : 'text.primary',
+          borderRight: '1px solid',
+          borderRightColor: 'divider',
         }}
       >
         {row.memberName}
@@ -219,20 +220,14 @@ const MemberRow = memo(function MemberRow({ row, months, onCellClick }: MemberRo
       <TableCell
         sx={{
           position: 'sticky',
-          left: 120,
-          bgcolor: 'background.paper',
+          left: NAME_COLUMN_WIDTH,
+          bgcolor: isPlaceholder ? 'rgba(255, 152, 0, 0.06)' : 'background.paper',
           zIndex: 1,
-          whiteSpace: 'nowrap',
-        }}
-      >
-        {row.role}
-      </TableCell>
-      <TableCell
-        sx={{
-          position: 'sticky',
-          left: 230,
-          bgcolor: 'background.paper',
-          zIndex: 1,
+          width: SKILLS_COLUMN_WIDTH,
+          minWidth: SKILLS_COLUMN_WIDTH,
+          maxWidth: SKILLS_COLUMN_WIDTH,
+          borderRight: '2px solid',
+          borderRightColor: 'divider',
         }}
       >
         <Stack direction="row" flexWrap="wrap" gap={0.5}>

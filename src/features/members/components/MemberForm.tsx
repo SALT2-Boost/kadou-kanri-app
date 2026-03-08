@@ -32,7 +32,6 @@ export default function MemberForm({ open, onClose, member }: MemberFormProps) {
   const updateMemberSkills = useUpdateMemberSkills();
 
   const [name, setName] = useState('');
-  const [role, setRole] = useState('');
   const [category, setCategory] = useState<MemberCategory>('社員');
   const [selectedSkills, setSelectedSkills] = useState<Skill[]>([]);
   const [note, setNote] = useState('');
@@ -42,14 +41,12 @@ export default function MemberForm({ open, onClose, member }: MemberFormProps) {
   const resetForm = () => {
     if (member) {
       setName(member.name);
-      setRole(member.role);
       setCategory(member.category);
       setSelectedSkills(member.member_skills.map((ms) => ms.skills));
       setNote(member.note ?? '');
       setJoinDate(member.join_date ?? '');
     } else {
       setName('');
-      setRole('');
       setCategory('社員');
       setSelectedSkills([]);
       setNote('');
@@ -73,7 +70,6 @@ export default function MemberForm({ open, onClose, member }: MemberFormProps) {
           id: member.id,
           input: {
             name: name.trim(),
-            role: role.trim() || '未設定',
             category,
             note: note.trim() || null,
             join_date: category === '入社予定' && joinDate ? joinDate : null,
@@ -84,7 +80,6 @@ export default function MemberForm({ open, onClose, member }: MemberFormProps) {
         // 新規作成
         const created = await createMember.mutateAsync({
           name: name.trim(),
-          role: role.trim() || '未設定',
           category,
           note: note.trim() || null,
           join_date: category === '入社予定' && joinDate ? joinDate : null,
@@ -123,14 +118,6 @@ export default function MemberForm({ open, onClose, member }: MemberFormProps) {
             required
             fullWidth
             autoFocus
-          />
-
-          <TextField
-            label="role"
-            value={role}
-            onChange={(e) => setRole(e.target.value)}
-            required
-            fullWidth
           />
 
           <FormControl fullWidth>

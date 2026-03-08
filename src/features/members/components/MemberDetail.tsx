@@ -46,7 +46,6 @@ export default function MemberDetail() {
 
   const [draft, setDraft] = useState<{
     name: string;
-    role: string;
     category: MemberCategory;
     selectedSkills: Skill[];
     note: string;
@@ -62,7 +61,6 @@ export default function MemberDetail() {
         id,
         input: {
           name: form.name.trim(),
-          role: form.role.trim() || '未設定',
           category: form.category,
           note: form.note.trim() || null,
           join_date: form.category === '入社予定' && form.joinDate ? form.joinDate : null,
@@ -93,14 +91,12 @@ export default function MemberDetail() {
     draft ??
     ({
       name: member.name,
-      role: member.role,
       category: member.category,
       selectedSkills: member.member_skills.map((ms) => ms.skills),
       note: member.note ?? '',
       joinDate: member.join_date ?? '',
     } satisfies {
       name: string;
-      role: string;
       category: MemberCategory;
       selectedSkills: Skill[];
       note: string;
@@ -110,7 +106,6 @@ export default function MemberDetail() {
   const updateDraft = (
     updates: Partial<{
       name: string;
-      role: string;
       category: MemberCategory;
       selectedSkills: Skill[];
       note: string;
@@ -169,14 +164,6 @@ export default function MemberDetail() {
             fullWidth
             error={!form.name.trim()}
             helperText={!form.name.trim() ? '名前は必須です' : ''}
-          />
-
-          <TextField
-            label="role"
-            value={form.role}
-            onChange={(e) => updateDraft({ role: e.target.value })}
-            required
-            fullWidth
           />
 
           <FormControl fullWidth>

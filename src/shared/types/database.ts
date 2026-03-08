@@ -29,7 +29,6 @@ export interface Database {
         Row: {
           id: string;
           name: string;
-          role: string;
           category: MemberCategory;
           note: string | null;
           join_date: string | null;
@@ -42,7 +41,6 @@ export interface Database {
         Insert: {
           id?: string;
           name: string;
-          role?: string;
           category: MemberCategory;
           note?: string | null;
           join_date?: string | null;
@@ -55,7 +53,6 @@ export interface Database {
         Update: {
           id?: string;
           name?: string;
-          role?: string;
           category?: MemberCategory;
           note?: string | null;
           join_date?: string | null;

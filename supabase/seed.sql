@@ -45,22 +45,6 @@ INSERT INTO members (id, name, category, note, is_active) VALUES
   ('a0000001-0000-0000-0000-000000000023', '三浦', 'インターン', NULL, true),
   ('a0000001-0000-0000-0000-000000000024', '會澤(SWE)', 'インターン', NULL, true);
 
-UPDATE members
-SET role = 'SWE'
-WHERE id IN (
-  'a0000001-0000-0000-0000-000000000013',
-  'a0000001-0000-0000-0000-000000000014',
-  'a0000001-0000-0000-0000-000000000015',
-  'a0000001-0000-0000-0000-000000000024'
-);
-
-UPDATE members
-SET role = 'DS'
-WHERE id IN (
-  'a0000001-0000-0000-0000-000000000021',
-  'a0000001-0000-0000-0000-000000000022'
-);
-
 -- ========================================
 -- メンバー × スキル
 -- ========================================
@@ -455,16 +439,27 @@ seed_assignment_rows (legacy_member_id, project_id, month, percentage, note) AS 
   ('a0000001-0000-0000-0000-000000000020', 'b0000001-0000-0000-0000-000000000015', '2026-08-01', 100, NULL)
 
 ),
+seed_member_project_roles (legacy_member_id, role) AS (
+  VALUES
+  ('a0000001-0000-0000-0000-000000000013'::uuid, 'SWE'),
+  ('a0000001-0000-0000-0000-000000000014'::uuid, 'SWE'),
+  ('a0000001-0000-0000-0000-000000000015'::uuid, 'SWE'),
+  ('a0000001-0000-0000-0000-000000000021'::uuid, 'DS'),
+  ('a0000001-0000-0000-0000-000000000022'::uuid, 'DS'),
+  ('a0000001-0000-0000-0000-000000000024'::uuid, 'SWE')
+),
 inserted_actual_project_members AS (
   INSERT INTO project_members (project_id, member_id, name, role, note)
   SELECT DISTINCT
     sar.project_id::uuid,
     m.id::uuid,
     m.name,
-    m.role,
+    COALESCE(smpr.role, '未設定'),
     NULL
   FROM seed_assignment_rows sar
   JOIN members m ON m.id = sar.legacy_member_id
+  LEFT JOIN seed_member_project_roles smpr
+    ON smpr.legacy_member_id = m.id
   RETURNING id, project_id, member_id, name, role
 ),
 inserted_placeholder_project_members AS (

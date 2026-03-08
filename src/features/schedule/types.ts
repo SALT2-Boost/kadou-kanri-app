@@ -3,7 +3,6 @@ export interface ScheduleBaseRow {
   memberId: string | null;
   memberName: string;
   category: '社員' | '入社予定' | 'インターン' | '未定枠';
-  role: string;
   isUnconfirmed: boolean;
   skills: string[];
 }

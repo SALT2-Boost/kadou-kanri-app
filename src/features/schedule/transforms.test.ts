@@ -6,7 +6,6 @@ const makeMember = (overrides: Partial<MemberWithSkills> = {}): MemberWithSkills
   id: 'm-1',
   name: '田中',
   category: '社員',
-  role: 'SWE',
   skills: [
     {
       skill_id: 's-1',
@@ -76,7 +75,6 @@ describe('transformToMonthlyView', () => {
       rowId: 'm-1',
       memberId: 'm-1',
       memberName: '田中',
-      role: 'SWE',
       isUnconfirmed: false,
       totalPercentage: 50,
     });
@@ -122,7 +120,6 @@ describe('transformToMonthlyView', () => {
       rowId: 'pm-2',
       memberId: null,
       memberName: '未定要員(PM)',
-      role: 'PM',
       isUnconfirmed: true,
       category: '未定枠',
       totalPercentage: 80,
@@ -161,7 +158,6 @@ describe('transformToMonthlyView', () => {
       rowId: 'pm-legacy',
       memberId: null,
       memberName: 'AIE要員',
-      role: 'AIE',
       isUnconfirmed: true,
       category: '未定枠',
     });
@@ -223,7 +219,6 @@ describe('buildPeriodRows', () => {
     });
     expect(rows.find((row) => row.rowId === 'pm-2')).toMatchObject({
       memberName: '未定要員(QA)',
-      role: 'QA',
       isUnconfirmed: true,
       category: '未定枠',
     });
@@ -252,7 +247,6 @@ describe('buildPeriodRows', () => {
       rowId: 'pm-legacy',
       memberId: null,
       memberName: 'SWE要員',
-      role: 'SWE',
       isUnconfirmed: true,
       category: '未定枠',
     });
@@ -267,7 +261,6 @@ describe('filterScheduleRows', () => {
         memberId: 'm-1',
         memberName: '田中',
         category: '社員' as const,
-        role: 'SWE',
         isUnconfirmed: false,
         skills: ['TypeScript'],
         months: {},
@@ -277,7 +270,6 @@ describe('filterScheduleRows', () => {
         memberId: null,
         memberName: '未定要員(PM)',
         category: '未定枠' as const,
-        role: 'PM',
         isUnconfirmed: true,
         skills: ['進行管理'],
         months: {},

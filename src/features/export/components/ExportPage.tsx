@@ -42,7 +42,6 @@ const TABLE_OPTIONS: TableOption[] = [
 const MEMBER_COLUMNS: CsvColumn[] = [
   { key: 'id', label: 'ID' },
   { key: 'name', label: '名前' },
-  { key: 'role', label: 'role' },
   { key: 'category', label: '区分' },
   { key: 'note', label: '備考' },
   { key: 'is_active', label: 'アクティブ' },

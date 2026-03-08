@@ -28,7 +28,7 @@ export async function fetchProjectMembersByProject(
   const { data, error } = await supabase
     .from('project_members')
     .select(
-      '*, members(id, name, category, role), project_member_skills(skill_id, skills(id, name)), assignments(*)',
+      '*, members(id, name, category), project_member_skills(skill_id, skills(id, name)), assignments(*)',
     )
     .eq('project_id', projectId)
     .order('name')
@@ -41,7 +41,7 @@ export async function fetchProjectMembersByProject(
 export async function fetchActiveMembers(): Promise<ActiveMember[]> {
   const { data, error } = await supabase
     .from('members')
-    .select('id, name, role, category, member_skills(skill_id, skills(id, name))')
+    .select('id, name, category, member_skills(skill_id, skills(id, name))')
     .eq('is_active', true)
     .eq('is_placeholder', false)
     .neq('category', '未定枠')

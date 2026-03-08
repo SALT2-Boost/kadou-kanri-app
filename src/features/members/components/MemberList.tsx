@@ -148,7 +148,6 @@ export default function MemberList() {
           <TableHead>
             <TableRow>
               <TableCell>名前</TableCell>
-              <TableCell>role</TableCell>
               <TableCell>区分</TableCell>
               <TableCell>スキル</TableCell>
               <TableCell>備考</TableCell>
@@ -157,7 +156,7 @@ export default function MemberList() {
           <TableBody>
             {filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
+                <TableCell colSpan={4} align="center" sx={{ py: 4 }}>
                   <Typography color="text.secondary">メンバーが見つかりません</Typography>
                 </TableCell>
               </TableRow>
@@ -170,7 +169,6 @@ export default function MemberList() {
                   sx={{ cursor: 'pointer' }}
                 >
                   <TableCell>{member.name}</TableCell>
-                  <TableCell>{member.role}</TableCell>
                   <TableCell>{member.category}</TableCell>
                   <TableCell>
                     <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>

@@ -15,7 +15,6 @@ export interface ProjectMemberMemberLink {
   id: string;
   name: string;
   category: '社員' | '入社予定' | 'インターン' | '未定枠';
-  role: string;
 }
 
 export interface ProjectMemberWithAssignments extends ProjectMember {
@@ -27,7 +26,6 @@ export interface ProjectMemberWithAssignments extends ProjectMember {
 export interface ActiveMember {
   id: string;
   name: string;
-  role: string;
   category: '社員' | '入社予定' | 'インターン' | '未定枠';
   member_skills: ProjectMemberSkillLink[];
 }

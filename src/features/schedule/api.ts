@@ -4,7 +4,6 @@ export interface MemberWithSkills {
   id: string;
   name: string;
   category: '社員' | '入社予定' | 'インターン' | '未定枠';
-  role: string;
   skills: Array<{ skill_id: string; name: string }>;
 }
 
@@ -44,7 +43,7 @@ export interface ProjectMemberWithAssignments {
 async function fetchActiveMembers(): Promise<MemberWithSkills[]> {
   const { data, error } = await supabase
     .from('members')
-    .select('id, name, category, role, member_skills(skill_id, skills(id, name))')
+    .select('id, name, category, member_skills(skill_id, skills(id, name))')
     .eq('is_active', true)
     .eq('is_placeholder', false)
     .neq('category', '未定枠')
@@ -57,7 +56,6 @@ async function fetchActiveMembers(): Promise<MemberWithSkills[]> {
       id: string;
       name: string;
       category: '社員' | '入社予定' | 'インターン' | '未定枠';
-      role: string;
       member_skills: Array<{
         skill_id: string;
         skills: { id: string; name: string };
@@ -67,7 +65,6 @@ async function fetchActiveMembers(): Promise<MemberWithSkills[]> {
     id: member.id,
     name: member.name,
     category: member.category,
-    role: member.role,
     skills: member.member_skills.map((link) => ({
       skill_id: link.skill_id,
       name: link.skills.name,

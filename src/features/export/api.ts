@@ -3,7 +3,6 @@ import { supabase } from '@/shared/lib/supabase';
 export interface ExportMember {
   id: string;
   name: string;
-  role: string;
   category: string;
   note: string | null;
   is_active: boolean;
@@ -42,7 +41,7 @@ export interface ExportSkill {
 export async function fetchAllMembers(): Promise<ExportMember[]> {
   const { data, error } = await supabase
     .from('members')
-    .select('id, name, role, category, note, is_active, created_at')
+    .select('id, name, category, note, is_active, created_at')
     .order('name');
   if (error) throw error;
   return data as ExportMember[];
