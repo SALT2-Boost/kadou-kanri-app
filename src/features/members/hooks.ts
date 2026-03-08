@@ -7,13 +7,17 @@ import {
   updateMember,
   deleteMember,
   updateMemberSkills,
+  fetchMemberUpcomingAssignments,
 } from './api';
 import type { InsertTables, UpdateTables } from '@/shared/types/database';
 import type { MemberWithSkills } from './types';
+import { buildMemberScheduleRows } from './transforms';
 
 export const memberKeys = {
   all: ['members'] as const,
   detail: (id: string) => ['members', id] as const,
+  schedule: (id: string, startMonth: string, endMonth: string) =>
+    ['members', id, 'schedule', startMonth, endMonth] as const,
   skills: ['skills'] as const,
 };
 
@@ -39,6 +43,18 @@ export function useSkills() {
   });
 }
 
+export function useMemberUpcomingSchedule(id: string, months: string[]) {
+  const startMonth = months[0] ?? '';
+  const endMonth = months[months.length - 1] ?? '';
+
+  return useQuery({
+    queryKey: memberKeys.schedule(id, startMonth, endMonth),
+    queryFn: () => fetchMemberUpcomingAssignments(id, startMonth, endMonth),
+    enabled: !!id && months.length > 0,
+    select: (assignments) => buildMemberScheduleRows(assignments, months),
+  });
+}
+
 export function useCreateMember() {
   const queryClient = useQueryClient();
 
@@ -54,6 +70,7 @@ export function useCreateMember() {
           id: `temp-${Date.now()}`,
           name: newMember.name,
           category: newMember.category,
+          company: newMember.company ?? 'ブーストコンサルティング',
           note: newMember.note ?? null,
           join_date: newMember.join_date ?? null,
           is_active: true,

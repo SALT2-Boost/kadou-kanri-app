@@ -1,5 +1,6 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
+import { MemoryRouter } from 'react-router-dom';
 import ScheduleTable from './ScheduleTable';
 import type { ScheduleRow } from '../types';
 
@@ -30,20 +31,46 @@ const rows: ScheduleRow[] = [
 
 describe('ScheduleTable', () => {
   it('member 集約ビューでは role 列を表示しない', () => {
-    render(<ScheduleTable rows={rows} months={months} />);
+    render(
+      <MemoryRouter>
+        <ScheduleTable rows={rows} months={months} />
+      </MemoryRouter>,
+    );
 
     expect(screen.getByText('メンバー名')).toBeInTheDocument();
     expect(screen.getByText('スキル')).toBeInTheDocument();
     expect(screen.queryByText('role')).not.toBeInTheDocument();
   });
 
-  it('左側の member 情報列を sticky で固定する', () => {
-    render(<ScheduleTable rows={rows} months={months} />);
+  it('左側の member 情報列と区分見出しを sticky で固定する', () => {
+    render(
+      <MemoryRouter>
+        <ScheduleTable rows={rows} months={months} />
+      </MemoryRouter>,
+    );
 
     const nameHeader = screen.getByText('メンバー名').closest('th');
     const skillsHeader = screen.getByText('スキル').closest('th');
+    const categoryHeader = screen.getByText('社員').closest('td');
 
     expect(nameHeader).toHaveStyle({ position: 'sticky', left: '0px' });
     expect(skillsHeader).toHaveStyle({ position: 'sticky', left: '220px' });
+    expect(categoryHeader).toHaveStyle({ position: 'sticky', left: '0px' });
+  });
+
+  it('メンバー名と案件名から詳細画面へ遷移できるリンクを表示する', () => {
+    render(
+      <MemoryRouter>
+        <ScheduleTable rows={rows} months={months} />
+      </MemoryRouter>,
+    );
+
+    const memberLink = screen.getByText('田中').closest('a');
+    expect(memberLink).toHaveAttribute('href', '/members/m-1');
+
+    fireEvent.click(screen.getByText('80%'));
+
+    const projectLink = screen.getByText('案件A').closest('a');
+    expect(projectLink).toHaveAttribute('href', '/projects/p-1');
   });
 });

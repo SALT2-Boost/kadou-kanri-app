@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -26,14 +26,17 @@ import PageHeader from '@/shared/ui/PageHeader';
 import LoadingOverlay from '@/shared/ui/LoadingOverlay';
 import {
   useMember,
+  useMemberUpcomingSchedule,
   useSkills,
   useUpdateMember,
   useUpdateMemberSkills,
   useDeleteMember,
 } from '../hooks';
-import { MEMBER_CATEGORIES } from '@/shared/constants/categories';
-import type { MemberCategory } from '@/shared/constants/categories';
+import { MEMBER_CATEGORIES, MEMBER_COMPANIES } from '@/shared/constants/categories';
+import type { MemberCategory, MemberCompany } from '@/shared/constants/categories';
 import type { Skill } from '../types';
+import MemberUpcomingScheduleTable from './MemberUpcomingScheduleTable';
+import { buildMonthStartRange, getCurrentMonthStart } from '@/shared/lib/months';
 
 export default function MemberDetail() {
   const { id } = useParams<{ id: string }>();
@@ -43,10 +46,13 @@ export default function MemberDetail() {
   const updateMemberMutation = useUpdateMember();
   const updateMemberSkills = useUpdateMemberSkills();
   const deleteMemberMutation = useDeleteMember();
+  const scheduleMonths = useMemo(() => buildMonthStartRange(getCurrentMonthStart(), 6), []);
+  const { data: scheduleRows = [] } = useMemberUpcomingSchedule(id!, scheduleMonths);
 
   const [draft, setDraft] = useState<{
     name: string;
     category: MemberCategory;
+    company: MemberCompany;
     selectedSkills: Skill[];
     note: string;
     joinDate: string;
@@ -62,6 +68,7 @@ export default function MemberDetail() {
         input: {
           name: form.name.trim(),
           category: form.category,
+          company: form.company,
           note: form.note.trim() || null,
           join_date: form.category === '入社予定' && form.joinDate ? form.joinDate : null,
         },
@@ -92,12 +99,14 @@ export default function MemberDetail() {
     ({
       name: member.name,
       category: member.category,
+      company: member.company,
       selectedSkills: member.member_skills.map((ms) => ms.skills),
       note: member.note ?? '',
       joinDate: member.join_date ?? '',
     } satisfies {
       name: string;
       category: MemberCategory;
+      company: MemberCompany;
       selectedSkills: Skill[];
       note: string;
       joinDate: string;
@@ -107,6 +116,7 @@ export default function MemberDetail() {
     updates: Partial<{
       name: string;
       category: MemberCategory;
+      company: MemberCompany;
       selectedSkills: Skill[];
       note: string;
       joinDate: string;
@@ -181,6 +191,21 @@ export default function MemberDetail() {
             </Select>
           </FormControl>
 
+          <FormControl fullWidth>
+            <InputLabel>所属会社</InputLabel>
+            <Select
+              value={form.company}
+              label="所属会社"
+              onChange={(e) => updateDraft({ company: e.target.value as MemberCompany })}
+            >
+              {MEMBER_COMPANIES.map((option) => (
+                <MenuItem key={option} value={option}>
+                  {option}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
           <Autocomplete
             multiple
             options={skills}
@@ -228,6 +253,15 @@ export default function MemberDetail() {
               / 更新日: {new Date(member.updated_at).toLocaleDateString('ja-JP')}
             </Typography>
           </Stack>
+        </Stack>
+      </Paper>
+
+      <Paper sx={{ p: 3, mt: 3 }}>
+        <Stack spacing={2}>
+          <Typography variant="h6" fontWeight={600}>
+            今後6ヶ月の稼働予定
+          </Typography>
+          <MemberUpcomingScheduleTable months={scheduleMonths} rows={scheduleRows} />
         </Stack>
       </Paper>
 

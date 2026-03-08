@@ -1,6 +1,8 @@
 import { useState, useCallback, useMemo, memo } from 'react';
+import { Link as RouterLink } from 'react-router-dom';
 import {
   Box,
+  Link,
   Table,
   TableBody,
   TableCell,
@@ -22,6 +24,7 @@ interface ScheduleTableProps {
 
 const NAME_COLUMN_WIDTH = 220;
 const SKILLS_COLUMN_WIDTH = 260;
+const FIXED_COLUMNS_WIDTH = NAME_COLUMN_WIDTH + SKILLS_COLUMN_WIDTH;
 
 function formatMonth(month: string): string {
   return month.slice(0, 7).replace('-', '/');
@@ -151,14 +154,30 @@ const GroupRows = memo(function GroupRows({
   months,
   onCellClick,
 }: GroupRowsProps) {
-  const totalColumns = months.length + 2;
+  const scrollingColumns = months.length;
 
   return (
     <>
       <TableRow>
-        <TableCell colSpan={totalColumns} sx={{ bgcolor: 'grey.200', fontWeight: 'bold', py: 0.5 }}>
+        <TableCell
+          colSpan={2}
+          sx={{
+            position: 'sticky',
+            left: 0,
+            zIndex: 2,
+            width: FIXED_COLUMNS_WIDTH,
+            minWidth: FIXED_COLUMNS_WIDTH,
+            maxWidth: FIXED_COLUMNS_WIDTH,
+            bgcolor: 'grey.200',
+            fontWeight: 'bold',
+            py: 0.5,
+            borderRight: '2px solid',
+            borderRightColor: 'divider',
+          }}
+        >
           {category}
         </TableCell>
+        <TableCell colSpan={scrollingColumns} sx={{ bgcolor: 'grey.200', py: 0.5 }} />
       </TableRow>
       {members.map((row) => (
         <MemberRow key={row.rowId} row={row} months={months} onCellClick={onCellClick} />
@@ -215,7 +234,19 @@ const MemberRow = memo(function MemberRow({ row, months, onCellClick }: MemberRo
           borderRightColor: 'divider',
         }}
       >
-        {row.memberName}
+        {row.memberId ? (
+          <Link
+            component={RouterLink}
+            to={`/members/${row.memberId}`}
+            underline="hover"
+            color="inherit"
+            fontWeight={500}
+          >
+            {row.memberName}
+          </Link>
+        ) : (
+          row.memberName
+        )}
       </TableCell>
       <TableCell
         sx={{

@@ -1,7 +1,9 @@
 import { useMemo } from 'react';
+import { Link as RouterLink } from 'react-router-dom';
 import {
   Box,
   Chip,
+  Link,
   Stack,
   Table,
   TableBody,
@@ -153,21 +155,29 @@ export default function MonthlyScheduleTable({ rows, projects }: MonthlySchedule
                   }}
                 >
                   <Tooltip title={project.name}>
-                    <Typography
-                      variant="caption"
-                      fontWeight={700}
-                      sx={{
-                        display: '-webkit-box',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        WebkitBoxOrient: 'vertical',
-                        WebkitLineClamp: 2,
-                        lineHeight: 1.35,
-                        wordBreak: 'break-word',
-                      }}
+                    <Link
+                      component={RouterLink}
+                      to={`/projects/${project.id}`}
+                      underline="hover"
+                      color="inherit"
+                      sx={{ display: 'block' }}
                     >
-                      {project.name}
-                    </Typography>
+                      <Typography
+                        variant="caption"
+                        fontWeight={700}
+                        sx={{
+                          display: '-webkit-box',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          WebkitBoxOrient: 'vertical',
+                          WebkitLineClamp: 2,
+                          lineHeight: 1.35,
+                          wordBreak: 'break-word',
+                        }}
+                      >
+                        {project.name}
+                      </Typography>
+                    </Link>
                   </Tooltip>
                 </TableCell>
               ))}
@@ -262,14 +272,28 @@ function MonthlyGroupRows({ group, projects }: MonthlyGroupRowsProps) {
             >
               <Stack spacing={0.5}>
                 <Stack direction="row" spacing={0.75} alignItems="center">
-                  <Typography
-                    fontWeight={500}
-                    color={isUnconfirmed ? 'text.secondary' : 'text.primary'}
-                    fontStyle={isUnconfirmed ? 'italic' : 'normal'}
-                    noWrap
-                  >
-                    {row.memberName}
-                  </Typography>
+                  {row.memberId ? (
+                    <Link
+                      component={RouterLink}
+                      to={`/members/${row.memberId}`}
+                      underline="hover"
+                      color="inherit"
+                      sx={{ display: 'inline-flex' }}
+                    >
+                      <Typography fontWeight={500} noWrap>
+                        {row.memberName}
+                      </Typography>
+                    </Link>
+                  ) : (
+                    <Typography
+                      fontWeight={500}
+                      color={isUnconfirmed ? 'text.secondary' : 'text.primary'}
+                      fontStyle={isUnconfirmed ? 'italic' : 'normal'}
+                      noWrap
+                    >
+                      {row.memberName}
+                    </Typography>
+                  )}
                   {isUnconfirmed && <Chip label="未確定" size="small" color="warning" />}
                 </Stack>
               </Stack>

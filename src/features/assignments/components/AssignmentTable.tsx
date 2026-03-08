@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { Link as RouterLink } from 'react-router-dom';
 import {
   Box,
   Button,
@@ -10,6 +11,7 @@ import {
   IconButton,
   Paper,
   Stack,
+  Link,
   Table,
   TableBody,
   TableCell,
@@ -38,6 +40,10 @@ interface AssignmentTableProps {
   startMonth: string;
   endMonth: string | null;
 }
+
+const MEMBER_COLUMN_WIDTH = 220;
+const ROLE_COLUMN_WIDTH = 140;
+const SKILLS_COLUMN_WIDTH = 220;
 
 function generateMonths(start: string, end: string | null): string[] {
   return end ? buildInclusiveMonthStartRange(start, end) : buildMonthStartRange(start, 12);
@@ -118,13 +124,68 @@ export default function AssignmentTable({ projectId, startMonth, endMonth }: Ass
           <Typography color="text.secondary">PJメンバーがまだ設定されていません</Typography>
         </Box>
       ) : (
-        <TableContainer>
-          <Table size="small">
+        <TableContainer sx={{ overflowX: 'auto', maxWidth: '100%' }}>
+          <Table
+            size="small"
+            sx={{
+              minWidth:
+                MEMBER_COLUMN_WIDTH +
+                ROLE_COLUMN_WIDTH +
+                SKILLS_COLUMN_WIDTH +
+                months.length * 80 +
+                120,
+            }}
+          >
             <TableHead>
               <TableRow>
-                <TableCell sx={{ fontWeight: 'bold', minWidth: 180 }}>メンバー</TableCell>
-                <TableCell sx={{ fontWeight: 'bold', minWidth: 120 }}>role</TableCell>
-                <TableCell sx={{ fontWeight: 'bold', minWidth: 200 }}>skills</TableCell>
+                <TableCell
+                  sx={{
+                    fontWeight: 'bold',
+                    minWidth: MEMBER_COLUMN_WIDTH,
+                    width: MEMBER_COLUMN_WIDTH,
+                    maxWidth: MEMBER_COLUMN_WIDTH,
+                    position: 'sticky',
+                    left: 0,
+                    zIndex: 3,
+                    bgcolor: 'background.paper',
+                    borderRight: '1px solid',
+                    borderRightColor: 'divider',
+                  }}
+                >
+                  メンバー
+                </TableCell>
+                <TableCell
+                  sx={{
+                    fontWeight: 'bold',
+                    minWidth: ROLE_COLUMN_WIDTH,
+                    width: ROLE_COLUMN_WIDTH,
+                    maxWidth: ROLE_COLUMN_WIDTH,
+                    position: 'sticky',
+                    left: MEMBER_COLUMN_WIDTH,
+                    zIndex: 3,
+                    bgcolor: 'background.paper',
+                    borderRight: '1px solid',
+                    borderRightColor: 'divider',
+                  }}
+                >
+                  role
+                </TableCell>
+                <TableCell
+                  sx={{
+                    fontWeight: 'bold',
+                    minWidth: SKILLS_COLUMN_WIDTH,
+                    width: SKILLS_COLUMN_WIDTH,
+                    maxWidth: SKILLS_COLUMN_WIDTH,
+                    position: 'sticky',
+                    left: MEMBER_COLUMN_WIDTH + ROLE_COLUMN_WIDTH,
+                    zIndex: 3,
+                    bgcolor: 'background.paper',
+                    borderRight: '2px solid',
+                    borderRightColor: 'divider',
+                  }}
+                >
+                  skills
+                </TableCell>
                 {months.map((month) => (
                   <TableCell
                     key={month}
@@ -144,10 +205,35 @@ export default function AssignmentTable({ projectId, startMonth, endMonth }: Ass
                   hover
                   sx={row.isUnconfirmed ? { bgcolor: 'rgba(255, 152, 0, 0.04)' } : undefined}
                 >
-                  <TableCell sx={{ fontWeight: 500 }}>
+                  <TableCell
+                    sx={{
+                      fontWeight: 500,
+                      minWidth: MEMBER_COLUMN_WIDTH,
+                      width: MEMBER_COLUMN_WIDTH,
+                      maxWidth: MEMBER_COLUMN_WIDTH,
+                      position: 'sticky',
+                      left: 0,
+                      zIndex: 1,
+                      bgcolor: row.isUnconfirmed ? 'rgba(255, 152, 0, 0.06)' : 'background.paper',
+                      borderRight: '1px solid',
+                      borderRightColor: 'divider',
+                    }}
+                  >
                     <Stack spacing={0.5}>
                       <Stack direction="row" spacing={0.75} alignItems="center">
-                        <Typography fontWeight={500}>{row.memberName}</Typography>
+                        {row.memberId ? (
+                          <Link
+                            component={RouterLink}
+                            to={`/members/${row.memberId}`}
+                            underline="hover"
+                            color="inherit"
+                            fontWeight={500}
+                          >
+                            {row.memberName}
+                          </Link>
+                        ) : (
+                          <Typography fontWeight={500}>{row.memberName}</Typography>
+                        )}
                         {row.isUnconfirmed && <Chip label="未確定" size="small" color="warning" />}
                       </Stack>
                       {row.note && (
@@ -157,8 +243,34 @@ export default function AssignmentTable({ projectId, startMonth, endMonth }: Ass
                       )}
                     </Stack>
                   </TableCell>
-                  <TableCell>{row.role}</TableCell>
-                  <TableCell>
+                  <TableCell
+                    sx={{
+                      minWidth: ROLE_COLUMN_WIDTH,
+                      width: ROLE_COLUMN_WIDTH,
+                      maxWidth: ROLE_COLUMN_WIDTH,
+                      position: 'sticky',
+                      left: MEMBER_COLUMN_WIDTH,
+                      zIndex: 1,
+                      bgcolor: row.isUnconfirmed ? 'rgba(255, 152, 0, 0.06)' : 'background.paper',
+                      borderRight: '1px solid',
+                      borderRightColor: 'divider',
+                    }}
+                  >
+                    {row.role}
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      minWidth: SKILLS_COLUMN_WIDTH,
+                      width: SKILLS_COLUMN_WIDTH,
+                      maxWidth: SKILLS_COLUMN_WIDTH,
+                      position: 'sticky',
+                      left: MEMBER_COLUMN_WIDTH + ROLE_COLUMN_WIDTH,
+                      zIndex: 1,
+                      bgcolor: row.isUnconfirmed ? 'rgba(255, 152, 0, 0.06)' : 'background.paper',
+                      borderRight: '2px solid',
+                      borderRightColor: 'divider',
+                    }}
+                  >
                     <Typography variant="body2" color="text.secondary">
                       {row.skillNames.join(' / ')}
                     </Typography>
@@ -224,31 +336,37 @@ export default function AssignmentTable({ projectId, startMonth, endMonth }: Ass
         </TableContainer>
       )}
 
-      <AssignMemberDialog
-        open={addDialogOpen}
-        onClose={() => setAddDialogOpen(false)}
-        projectId={projectId}
-        startMonth={startMonth}
-        endMonth={endMonth}
-        existingMemberIds={existingMemberIds}
-      />
+      {addDialogOpen ? (
+        <AssignMemberDialog
+          open={addDialogOpen}
+          onClose={() => setAddDialogOpen(false)}
+          projectId={projectId}
+          startMonth={startMonth}
+          endMonth={endMonth}
+          existingMemberIds={existingMemberIds}
+        />
+      ) : null}
 
-      <AssignMemberDialog
-        open={editTarget !== null}
-        onClose={() => setEditTarget(null)}
-        projectId={projectId}
-        startMonth={startMonth}
-        endMonth={endMonth}
-        existingMemberIds={existingMemberIds}
-        projectMember={editTarget}
-      />
+      {editTarget ? (
+        <AssignMemberDialog
+          open
+          onClose={() => setEditTarget(null)}
+          projectId={projectId}
+          startMonth={startMonth}
+          endMonth={endMonth}
+          existingMemberIds={existingMemberIds}
+          projectMember={editTarget}
+        />
+      ) : null}
 
-      <ConfirmProjectMemberDialog
-        open={confirmTarget !== null}
-        onClose={() => setConfirmTarget(null)}
-        projectMemberId={confirmTarget}
-        existingMemberIds={existingMemberIds}
-      />
+      {confirmTarget ? (
+        <ConfirmProjectMemberDialog
+          open
+          onClose={() => setConfirmTarget(null)}
+          projectMemberId={confirmTarget}
+          existingMemberIds={existingMemberIds}
+        />
+      ) : null}
 
       <Dialog open={deleteTarget !== null} onClose={() => setDeleteTarget(null)}>
         <DialogTitle>PJメンバーを削除</DialogTitle>

@@ -17,6 +17,10 @@ function formatMonth(month: string): string {
   return `${year}/${m}`;
 }
 
+function formatRevenue(value: number) {
+  return `${value.toLocaleString('ja-JP')}万円`;
+}
+
 export default function RevenueChart() {
   const { data, isLoading } = useMonthlyRevenue();
 
@@ -42,11 +46,11 @@ export default function RevenueChart() {
         </Typography>
       ) : (
         <ResponsiveContainer width="100%" height={350}>
-          <BarChart data={chartData}>
+          <BarChart data={chartData} margin={{ top: 16, right: 24, left: 12, bottom: 8 }}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="month" />
-            <YAxis unit="万円" />
-            <Tooltip />
+            <YAxis width={72} tickFormatter={(value) => `${value}`} unit="万円" />
+            <Tooltip formatter={(value) => formatRevenue(Number(value) || 0)} />
             <Legend />
             <Bar dataKey="確定" stackId="revenue" fill="#4caf50" />
             <Bar dataKey="提案済" stackId="revenue" fill="#ff9800" />

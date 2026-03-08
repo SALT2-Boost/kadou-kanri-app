@@ -15,8 +15,8 @@ import {
   Chip,
 } from '@mui/material';
 import { useSkills, useCreateMember, useUpdateMember, useUpdateMemberSkills } from '../hooks';
-import { MEMBER_CATEGORIES } from '@/shared/constants/categories';
-import type { MemberCategory } from '@/shared/constants/categories';
+import { MEMBER_CATEGORIES, MEMBER_COMPANIES } from '@/shared/constants/categories';
+import type { MemberCategory, MemberCompany } from '@/shared/constants/categories';
 import type { MemberWithSkills, Skill } from '../types';
 
 interface MemberFormProps {
@@ -33,6 +33,7 @@ export default function MemberForm({ open, onClose, member }: MemberFormProps) {
 
   const [name, setName] = useState('');
   const [category, setCategory] = useState<MemberCategory>('社員');
+  const [company, setCompany] = useState<MemberCompany>('ブーストコンサルティング');
   const [selectedSkills, setSelectedSkills] = useState<Skill[]>([]);
   const [note, setNote] = useState('');
   const [joinDate, setJoinDate] = useState('');
@@ -42,12 +43,14 @@ export default function MemberForm({ open, onClose, member }: MemberFormProps) {
     if (member) {
       setName(member.name);
       setCategory(member.category);
+      setCompany(member.company);
       setSelectedSkills(member.member_skills.map((ms) => ms.skills));
       setNote(member.note ?? '');
       setJoinDate(member.join_date ?? '');
     } else {
       setName('');
       setCategory('社員');
+      setCompany('ブーストコンサルティング');
       setSelectedSkills([]);
       setNote('');
       setJoinDate('');
@@ -71,6 +74,7 @@ export default function MemberForm({ open, onClose, member }: MemberFormProps) {
           input: {
             name: name.trim(),
             category,
+            company,
             note: note.trim() || null,
             join_date: category === '入社予定' && joinDate ? joinDate : null,
           },
@@ -81,6 +85,7 @@ export default function MemberForm({ open, onClose, member }: MemberFormProps) {
         const created = await createMember.mutateAsync({
           name: name.trim(),
           category,
+          company,
           note: note.trim() || null,
           join_date: category === '入社予定' && joinDate ? joinDate : null,
         });
@@ -130,6 +135,21 @@ export default function MemberForm({ open, onClose, member }: MemberFormProps) {
               {MEMBER_CATEGORIES.map((cat) => (
                 <MenuItem key={cat} value={cat}>
                   {cat}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          <FormControl fullWidth>
+            <InputLabel>所属会社</InputLabel>
+            <Select
+              value={company}
+              label="所属会社"
+              onChange={(e) => setCompany(e.target.value as MemberCompany)}
+            >
+              {MEMBER_COMPANIES.map((option) => (
+                <MenuItem key={option} value={option}>
+                  {option}
                 </MenuItem>
               ))}
             </Select>

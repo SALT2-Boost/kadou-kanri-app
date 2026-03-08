@@ -22,9 +22,10 @@ import LoadingOverlay from '@/shared/ui/LoadingOverlay';
 import MonthPicker from '@/shared/ui/MonthPicker';
 import { AssignmentTable } from '@/features/assignments';
 import { useProject, useUpdateProject, useDeleteProject } from '../hooks';
+import { PROJECT_CATEGORIES } from '@/shared/constants/categories';
+import type { ProjectCategory } from '@/shared/constants/categories';
 
 const STATUS_OPTIONS = ['確定', '提案済', '提案予定'] as const;
-const CATEGORY_OPTIONS = ['戦コン', 'AIエージェント', 'システムリプレイス', 'その他'] as const;
 
 function calcMonthCount(start: string, end: string): number | null {
   if (!start || !end) return null;
@@ -53,9 +54,7 @@ export default function ProjectDetail() {
   const [startMonth, setStartMonth] = useState('');
   const [endMonth, setEndMonth] = useState('');
   const [status, setStatus] = useState<'確定' | '提案済' | '提案予定'>('提案予定');
-  const [category, setCategory] = useState<
-    '戦コン' | 'AIエージェント' | 'システムリプレイス' | 'その他'
-  >('その他');
+  const [category, setCategory] = useState<ProjectCategory>('その他');
   const [description, setDescription] = useState('');
   const [note, setNote] = useState('');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -186,7 +185,7 @@ export default function ProjectDetail() {
               onChange={(e) => setCategory(e.target.value as typeof category)}
               fullWidth
             >
-              {CATEGORY_OPTIONS.map((opt) => (
+              {PROJECT_CATEGORIES.map((opt) => (
                 <MenuItem key={opt} value={opt}>
                   {opt}
                 </MenuItem>

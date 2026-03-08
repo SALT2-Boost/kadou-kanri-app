@@ -3,9 +3,15 @@ type ProjectStaffingTarget = {
   percentage: number;
 };
 
-type ProjectCategory = '戦コン' | 'AIエージェント' | 'システムリプレイス' | 'その他';
+type ProjectCategory =
+  | '戦コン'
+  | 'AIエージェント'
+  | 'システムリプレイス'
+  | 'データサイエンス'
+  | 'その他';
 type ProjectStatus = '確定' | '提案済' | '提案予定';
 type MemberCategory = '社員' | '入社予定' | 'インターン' | '未定枠';
+type MemberCompany = 'SALT2' | 'ブーストコンサルティング';
 
 export interface Database {
   public: {
@@ -30,6 +36,7 @@ export interface Database {
           id: string;
           name: string;
           category: MemberCategory;
+          company: MemberCompany;
           note: string | null;
           join_date: string | null;
           is_active: boolean;
@@ -42,6 +49,7 @@ export interface Database {
           id?: string;
           name: string;
           category: MemberCategory;
+          company?: MemberCompany;
           note?: string | null;
           join_date?: string | null;
           is_active?: boolean;
@@ -54,6 +62,7 @@ export interface Database {
           id?: string;
           name?: string;
           category?: MemberCategory;
+          company?: MemberCompany;
           note?: string | null;
           join_date?: string | null;
           is_active?: boolean;

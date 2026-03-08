@@ -20,9 +20,9 @@ import { useCreateProject, useUpdateProject, useCreateProjectPlaceholders } from
 import { useSkills } from '@/features/members/hooks';
 import type { Skill } from '@/features/members/types';
 import type { Project } from '../types';
+import { PROJECT_CATEGORIES } from '@/shared/constants/categories';
 
 const STATUS_OPTIONS = ['確定', '提案済', '提案予定'] as const;
-const CATEGORY_OPTIONS = ['戦コン', 'AIエージェント', 'システムリプレイス', 'その他'] as const;
 
 function calcMonthCount(start: string, end: string): number | null {
   if (!start || !end) return null;
@@ -56,9 +56,7 @@ export default function ProjectForm({ open, onClose, project }: ProjectFormProps
   const [startMonth, setStartMonth] = useState('');
   const [endMonth, setEndMonth] = useState('');
   const [status, setStatus] = useState<'確定' | '提案済' | '提案予定'>('提案予定');
-  const [category, setCategory] = useState<
-    '戦コン' | 'AIエージェント' | 'システムリプレイス' | 'その他'
-  >('その他');
+  const [category, setCategory] = useState<Project['category']>('その他');
   const [description, setDescription] = useState('');
   const [note, setNote] = useState('');
   const [placeholders, setPlaceholders] = useState<PlaceholderDraft[]>([]);
@@ -206,7 +204,7 @@ export default function ProjectForm({ open, onClose, project }: ProjectFormProps
             onChange={(e) => setCategory(e.target.value as typeof category)}
             fullWidth
           >
-            {CATEGORY_OPTIONS.map((opt) => (
+            {PROJECT_CATEGORIES.map((opt) => (
               <MenuItem key={opt} value={opt}>
                 {opt}
               </MenuItem>

@@ -1,4 +1,6 @@
+import { Link as RouterLink } from 'react-router-dom';
 import {
+  Link,
   Popover,
   Table,
   TableBody,
@@ -11,7 +13,7 @@ import {
 interface AssignmentPopoverProps {
   anchorEl: HTMLElement | null;
   onClose: () => void;
-  assignments: Array<{ projectName: string; percentage: number }>;
+  assignments: Array<{ projectId: string; projectName: string; percentage: number }>;
 }
 
 export default function AssignmentPopover({
@@ -43,7 +45,16 @@ export default function AssignmentPopover({
         <TableBody>
           {assignments.map((a, i) => (
             <TableRow key={i}>
-              <TableCell>{a.projectName}</TableCell>
+              <TableCell>
+                <Link
+                  component={RouterLink}
+                  to={`/projects/${a.projectId}`}
+                  underline="hover"
+                  color="inherit"
+                >
+                  {a.projectName}
+                </Link>
+              </TableCell>
               <TableCell align="right">{a.percentage}%</TableCell>
             </TableRow>
           ))}
@@ -52,10 +63,7 @@ export default function AssignmentPopover({
               <Typography variant="subtitle2">合計</Typography>
             </TableCell>
             <TableCell align="right">
-              <Typography
-                variant="subtitle2"
-                color={total > 100 ? 'error' : 'text.primary'}
-              >
+              <Typography variant="subtitle2" color={total > 100 ? 'error' : 'text.primary'}>
                 {total}%
               </Typography>
             </TableCell>

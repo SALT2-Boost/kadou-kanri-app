@@ -1,6 +1,6 @@
 import { supabase } from '@/shared/lib/supabase';
 import type { InsertTables, UpdateTables } from '@/shared/types/database';
-import type { MemberWithSkills, Skill } from './types';
+import type { MemberScheduleAssignment, MemberWithSkills, Skill } from './types';
 
 export async function fetchMembers(): Promise<MemberWithSkills[]> {
   const { data, error } = await supabase
@@ -85,4 +85,22 @@ export async function updateMemberSkills(memberId: string, skillIds: string[]): 
 
     if (insertError) throw insertError;
   }
+}
+
+export async function fetchMemberUpcomingAssignments(
+  memberId: string,
+  startMonth: string,
+  endMonth: string,
+): Promise<MemberScheduleAssignment[]> {
+  const { data, error } = await supabase
+    .from('assignments')
+    .select('project_id, month, percentage, projects(id, name)')
+    .eq('member_id', memberId)
+    .gte('month', startMonth)
+    .lte('month', endMonth)
+    .order('month')
+    .order('project_id');
+
+  if (error) throw error;
+  return (data ?? []) as MemberScheduleAssignment[];
 }
